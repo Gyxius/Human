@@ -1,13 +1,18 @@
-import pygame
+import pygame 
 from pygame.locals import *
-from settings import *
+from characters import *
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    screen.fill(WHITE)
+    surface = pygame.display.set_mode((WIDTH, HEIGHT))
+    surface.fill(WHITE)
     clock = pygame.time.Clock()
     pygame.display.set_caption(TITLE)
+
+    player = Player(surface, "Josh")
+    enemy = Enemies(surface)
+
+
     running = True
     while running:
         for event in pygame.event.get():
