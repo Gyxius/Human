@@ -1,24 +1,61 @@
 import pygame 
 from pygame.locals import *
 from characters import *
+from map import *
 
 class Game:
     def __init__(self):
         pygame.init()
         self.surface = pygame.display.set_mode((WIDTH, HEIGHT))
-        self.surface.fill(WHITE)
+        self.surface.fill(GREEN)
         self.clock = pygame.time.Clock()
         pygame.display.set_caption(TITLE)
 
+        self.enemies = [NPC(self.surface) for _ in range(3)]
         self.player = Player(self.surface, "Josh")
-        self.enemy = Enemies(self.surface)
 
     def run(self):
         running = True
         while running:
+            pygame.time.delay(30)
+            
             for event in pygame.event.get():
                 if event.type == QUIT:
                     running = False
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        self.player.moving["up"] = True
+                    elif event.key == pygame.K_DOWN:
+                        self.player.moving["down"] = True
+                    elif event.key == pygame.K_LEFT:
+                        self.player.moving["left"] = True
+                    elif event.key == pygame.K_RIGHT:
+                        self.player.moving["right"] = True
+
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_UP:
+                        self.player.moving["up"] = False
+                    elif event.key == pygame.K_DOWN:
+                        self.player.moving["down"] = False
+                    elif event.key == pygame.K_LEFT:
+                        self.player.moving["left"] = False
+                    elif event.key == pygame.K_RIGHT:
+                        self.player.moving["right"] = False
+
             self.clock.tick(FPS)
-            pygame.display.flip()
+
+            # Update all NPCs
+            for enemy in self.enemies:
+                enemy.update(self.player)
+
+            self.player.update(self.surface)
+
+            self.surface.fill(GREEN)
+            # Draw all NPCs
+            for enemy in self.enemies:
+                enemy.draw(self.surface)
+
+            self.player.draw(self.surface)
+            pygame.display.update()
         pygame.quit()
