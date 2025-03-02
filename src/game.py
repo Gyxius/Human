@@ -1,8 +1,9 @@
 import pygame 
 from pygame.locals import *
-from characters import *
 from map import *
 from collisionManager import *
+from npc import *
+from player import *
 
 class Game:
     def __init__(self):
@@ -33,6 +34,9 @@ class Game:
                         self.player.moving["left"] = True
                     elif event.key == pygame.K_RIGHT:
                         self.player.moving["right"] = True
+                    elif event.key == pygame.K_SPACE:
+                        # self.player.moving["space"] = True
+                        
 
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_UP:
