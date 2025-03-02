@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 from characters import *
 from map import *
+from collisionManager import *
 
 class Game:
     def __init__(self):
@@ -10,9 +11,9 @@ class Game:
         self.surface.fill(GREEN)
         self.clock = pygame.time.Clock()
         pygame.display.set_caption(TITLE)
-
         self.enemies = [NPC(self.surface) for _ in range(3)]
         self.player = Player(self.surface, "Josh")
+        self.collision_manager = CollisionManager(self.player, self.enemies)
 
     def run(self):
         running = True
@@ -47,9 +48,9 @@ class Game:
 
             # Update all NPCs
             for enemy in self.enemies:
-                enemy.update(self.player)
+                enemy.update(self.player, self.collision_manager)
 
-            self.player.update(self.surface)
+            self.player.update(self.collision_manager)
 
             self.surface.fill(GREEN)
             # Draw all NPCs
