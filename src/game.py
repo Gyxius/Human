@@ -36,6 +36,7 @@ class Game:
                         self.player.moving["right"] = True
                     elif event.key == pygame.K_SPACE:
                         # self.player.moving["space"] = True
+                        pass
                         
 
                 elif event.type == pygame.KEYUP:
