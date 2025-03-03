@@ -15,6 +15,7 @@ class NPC(Characters):
   def draw(self, surface):
     self.sprite = Sprites.Circle(surface, RED, self.xPosition, self.yPosition)
 
+
   def update(self, player, collision_manager):
     self.state.move(player, collision_manager)  # Delegate behavior to the current state
   
