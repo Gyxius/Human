@@ -10,4 +10,6 @@ class Sprites:
   
   @staticmethod
   def Rectangle(surface, color, posx, posy):
-    pygame.draw.rect(surface, color, rect=(posx, posy, RADIUS_SIZE * 2, RADIUS_SIZE * 2), width=1)
+    rect = pygame.Rect(posx, posy, RADIUS_SIZE * 2, RADIUS_SIZE * 2)
+    pygame.draw.rect(surface, color, rect, width=1)
+    return rect

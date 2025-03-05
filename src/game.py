@@ -36,7 +36,6 @@ class Game:
                         self.player.moving["right"] = True
                     elif event.key == pygame.K_SPACE:
                         self.player.moving["space"] = True
-                        
 
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_UP:
@@ -49,6 +48,7 @@ class Game:
                         self.player.moving["right"] = False
                     elif event.key == pygame.K_SPACE:
                         self.player.moving["space"] = False
+                        pass
 
             self.clock.tick(FPS)
 

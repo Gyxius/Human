@@ -11,6 +11,7 @@ class Player(Characters):
         super().__init__(sprite, name, "blue")
         self.dx = 0
         self.dy = 0
+        self.attack = None
 
     def move(self, collision_manager):
         self.dx = self.dy = 0  # reset every frame
@@ -38,6 +39,7 @@ class Player(Characters):
     def update(self, collision_manager):
         # Move player based on held keys
         self.move(collision_manager)
+        self.attack_enemies(collision_manager)
 
     @property
     def collision_block(self):
@@ -46,30 +48,42 @@ class Player(Characters):
     def draw_rectangle(self, surface):
         if self.moving["space"] and self.moving["right"] and self.moving["up"]:
             # Top-right
-            Sprites.Rectangle(surface, WHITE, self.xPosition + RADIUS_SIZE, self.yPosition - 3 * RADIUS_SIZE)
+            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition + RADIUS_SIZE, self.yPosition - 3 * RADIUS_SIZE)
+            self.attack
 
         elif self.moving["space"] and self.moving["right"] and self.moving["down"]:
             # Bottom-right
-            Sprites.Rectangle(surface, WHITE, self.xPosition + RADIUS_SIZE, self.yPosition + RADIUS_SIZE)
+            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition + RADIUS_SIZE, self.yPosition + RADIUS_SIZE)
+            self.attack
 
         elif self.moving["space"] and self.moving["left"] and self.moving["up"]:
             # Top-left
-            Sprites.Rectangle(surface, WHITE, self.xPosition - 3 * RADIUS_SIZE, self.yPosition - 3 * RADIUS_SIZE)
+            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - 3 * RADIUS_SIZE, self.yPosition - 3 * RADIUS_SIZE)
+            self.attack
 
         elif self.moving["space"] and self.moving["left"] and self.moving["down"]:
             # Bottom-left
-            Sprites.Rectangle(surface, WHITE, self.xPosition - 3 * RADIUS_SIZE, self.yPosition + RADIUS_SIZE)
+            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - 3 * RADIUS_SIZE, self.yPosition + RADIUS_SIZE)
+            self.attack
 
         elif self.moving["space"] and self.moving["right"]:
-            Sprites.Rectangle(surface, WHITE, self.xPosition + RADIUS_SIZE, self.yPosition - RADIUS_SIZE)
+            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition + RADIUS_SIZE, self.yPosition - RADIUS_SIZE)
+            self.attack
 
         elif self.moving["space"] and self.moving["left"]:
-            Sprites.Rectangle(surface, WHITE, self.xPosition - 3 * RADIUS_SIZE, self.yPosition - RADIUS_SIZE)
+            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - 3 * RADIUS_SIZE, self.yPosition - RADIUS_SIZE)
+            self.attack
 
         elif self.moving["space"] and self.moving["up"]:
-            Sprites.Rectangle(surface, WHITE, self.xPosition - RADIUS_SIZE, self.yPosition - 3 * RADIUS_SIZE)
+            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - RADIUS_SIZE, self.yPosition - 3 * RADIUS_SIZE)
+            self.attack
 
         elif self.moving["space"] and self.moving["down"]:
-            Sprites.Rectangle(surface, WHITE, self.xPosition - RADIUS_SIZE, self.yPosition + RADIUS_SIZE)
+            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - RADIUS_SIZE, self.yPosition + RADIUS_SIZE)
+            self.attack
 
-
+    def attack_enemies(self, collision_manager):
+        if self.attack:
+            npcs_attacked = collision_manager.rectangle_collision(rect = self.attack)
+            for npc in npcs_attacked:
+                print(f"{npc} is being attacked by player")
