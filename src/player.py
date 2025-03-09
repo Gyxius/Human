@@ -60,17 +60,14 @@ class Player(Characters):
             ("down",): (-RADIUS_SIZE, RADIUS_SIZE),           # Down
         }
 
-        # Find the pressed directions
-        active_directions = tuple(dir for dir in ["right", "left", "up", "down"] if self.moving[dir])
+        directions = tuple(dir for dir in ["right", "left", "up", "down"] if self.moving[dir])
 
-        if active_directions in attack_offsets:
-            dx, dy = attack_offsets[active_directions]
+        if directions in attack_offsets:
+            dx, dy = attack_offsets[directions]
             self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition + dx, self.yPosition + dy)
-
-        # Archive  elif self.moving["space"] and self.moving["left"] and self.moving["down"]: # Check how the code was done
 
     def attack_enemies(self, collision_manager):
         if self.attack:
-            npcs_attacked = collision_manager.rectangle_collision(rect = self.attack)
+            npcs_attacked = collision_manager.rectangle_collision(rect = self.attack)   # Check if the attack (Rectangle Square collides with an enemy)
             for npc in npcs_attacked:
-                print(f"{npc} is being attacked by player")
+                print(f"{npc.id} is being attacked by player")
