@@ -46,41 +46,28 @@ class Player(Characters):
         return pygame.Rect(self.xPosition - RADIUS_SIZE, self.yPosition - RADIUS_SIZE, self.width, self.height)
 
     def draw_rectangle(self, surface):
-        if self.moving["space"] and self.moving["right"] and self.moving["up"]:
-            # Top-right
-            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition + RADIUS_SIZE, self.yPosition - 3 * RADIUS_SIZE)
-            self.attack
+        if not self.moving["space"]:
+            return
 
-        elif self.moving["space"] and self.moving["right"] and self.moving["down"]:
-            # Bottom-right
-            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition + RADIUS_SIZE, self.yPosition + RADIUS_SIZE)
-            self.attack
+        attack_offsets = {
+            ("right", "up"): (RADIUS_SIZE, -3 * RADIUS_SIZE),   # Top-right
+            ("right", "down"): (RADIUS_SIZE, RADIUS_SIZE),      # Bottom-right
+            ("left", "up"): (-3 * RADIUS_SIZE, -3 * RADIUS_SIZE), # Top-left
+            ("left", "down"): (-3 * RADIUS_SIZE, RADIUS_SIZE),  # Bottom-left
+            ("right",): (RADIUS_SIZE, -RADIUS_SIZE),           # Right
+            ("left",): (-3 * RADIUS_SIZE, -RADIUS_SIZE),       # Left
+            ("up",): (-RADIUS_SIZE, -3 * RADIUS_SIZE),         # Up
+            ("down",): (-RADIUS_SIZE, RADIUS_SIZE),           # Down
+        }
 
-        elif self.moving["space"] and self.moving["left"] and self.moving["up"]:
-            # Top-left
-            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - 3 * RADIUS_SIZE, self.yPosition - 3 * RADIUS_SIZE)
-            self.attack
+        # Find the pressed directions
+        active_directions = tuple(dir for dir in ["right", "left", "up", "down"] if self.moving[dir])
 
-        elif self.moving["space"] and self.moving["left"] and self.moving["down"]:
-            # Bottom-left
-            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - 3 * RADIUS_SIZE, self.yPosition + RADIUS_SIZE)
-            self.attack
+        if active_directions in attack_offsets:
+            dx, dy = attack_offsets[active_directions]
+            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition + dx, self.yPosition + dy)
 
-        elif self.moving["space"] and self.moving["right"]:
-            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition + RADIUS_SIZE, self.yPosition - RADIUS_SIZE)
-            self.attack
-
-        elif self.moving["space"] and self.moving["left"]:
-            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - 3 * RADIUS_SIZE, self.yPosition - RADIUS_SIZE)
-            self.attack
-
-        elif self.moving["space"] and self.moving["up"]:
-            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - RADIUS_SIZE, self.yPosition - 3 * RADIUS_SIZE)
-            self.attack
-
-        elif self.moving["space"] and self.moving["down"]:
-            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition - RADIUS_SIZE, self.yPosition + RADIUS_SIZE)
-            self.attack
+        # Archive  elif self.moving["space"] and self.moving["left"] and self.moving["down"]: # Check how the code was done
 
     def attack_enemies(self, collision_manager):
         if self.attack:

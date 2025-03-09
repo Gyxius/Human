@@ -1,4 +1,3 @@
-import pygame 
 from pygame.locals import *
 from characters import *
 from game import *
