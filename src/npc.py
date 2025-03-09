@@ -17,7 +17,8 @@ class NPC(Characters):
 
 
   def update(self, player, collision_manager):
-    self.state.move(player, collision_manager)  # Delegate behavior to the current state
+    if self.health > 0:
+      self.state.move(player, collision_manager)  # Delegate behavior to the current state
   
   def set_state(self, state):
      self.state = state
@@ -26,4 +27,10 @@ class NPC(Characters):
   def collision_block(self):
     return pygame.Rect(self.xPosition - RADIUS_SIZE, self.yPosition - RADIUS_SIZE, self.width, self.height)
 
-
+  def take_damage(self, damage, npc_list):
+      """Called when the NPC is hit"""
+      self.health -= damage
+      print(f"NPC {self.id} took {damage} damage! Health: {self.health}")
+      if self.health <= 0 and self in npc_list:
+          print(f"NPC {self.id} has died!")
+          npc_list.remove(self)  # Remove from the game

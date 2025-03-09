@@ -1,4 +1,5 @@
 from characters import *
+from weapons import *
 
 class Player(Characters):
     def __init__(self, surface, name):
@@ -11,7 +12,9 @@ class Player(Characters):
         super().__init__(sprite, name, "blue")
         self.dx = 0
         self.dy = 0
-        self.attack = None
+        self.attack_sprite = None
+        self.weapon = NoWeapon(self)
+
 
     def move(self, collision_manager):
         self.dx = self.dy = 0  # reset every frame
@@ -33,41 +36,24 @@ class Player(Characters):
 
     def draw(self, surface):
         self.sprite = Sprites.Circle(surface, BLUE, self.xPosition, self.yPosition)
-        self.draw_rectangle(surface)
-
+        self.weapon.draw(surface) 
 
     def update(self, collision_manager):
         # Move player based on held keys
         self.move(collision_manager)
+        self.weapon.update() 
         self.attack_enemies(collision_manager)
 
     @property
     def collision_block(self):
         return pygame.Rect(self.xPosition - RADIUS_SIZE, self.yPosition - RADIUS_SIZE, self.width, self.height)
 
-    def draw_rectangle(self, surface):
-        if not self.moving["space"]:
-            return
-
-        attack_offsets = {
-            ("right", "up"): (RADIUS_SIZE, -3 * RADIUS_SIZE),   # Top-right
-            ("right", "down"): (RADIUS_SIZE, RADIUS_SIZE),      # Bottom-right
-            ("left", "up"): (-3 * RADIUS_SIZE, -3 * RADIUS_SIZE), # Top-left
-            ("left", "down"): (-3 * RADIUS_SIZE, RADIUS_SIZE),  # Bottom-left
-            ("right",): (RADIUS_SIZE, -RADIUS_SIZE),           # Right
-            ("left",): (-3 * RADIUS_SIZE, -RADIUS_SIZE),       # Left
-            ("up",): (-RADIUS_SIZE, -3 * RADIUS_SIZE),         # Up
-            ("down",): (-RADIUS_SIZE, RADIUS_SIZE),           # Down
-        }
-
-        directions = tuple(dir for dir in ["right", "left", "up", "down"] if self.moving[dir])
-
-        if directions in attack_offsets:
-            dx, dy = attack_offsets[directions]
-            self.attack = Sprites.Rectangle(surface, WHITE, self.xPosition + dx, self.yPosition + dy)
-
     def attack_enemies(self, collision_manager):
-        if self.attack:
-            npcs_attacked = collision_manager.rectangle_collision(rect = self.attack)   # Check if the attack (Rectangle Square collides with an enemy)
-            for npc in npcs_attacked:
-                print(f"{npc.id} is being attacked by player")
+        # Check who is around
+        if self.moving["space"] and not self.weapon.active:
+            self.weapon.attack()
+            if self.weapon.attack_rect: 
+                npcs_attacked = collision_manager.rectangle_collision(rect = self.weapon.attack_rect)   # Check if the attack (Rectangle Square collides with an enemy)
+                for npc in npcs_attacked:
+                    print(f"{npc.id} is being attacked by player")
+                    npc.take_damage(self.weapon.damage, collision_manager.npcs)  # Make NPC take damage!

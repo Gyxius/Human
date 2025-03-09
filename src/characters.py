@@ -18,6 +18,7 @@ class Characters:
     self.profession = "Unemployed"
     self.width = 2 * RADIUS_SIZE
     self.height = 2 * RADIUS_SIZE
+    self.damage = 10
 
         # Clan and Reputation
     self.clan = "None"

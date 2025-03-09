@@ -52,6 +52,8 @@ class Game:
 
             self.clock.tick(FPS)
 
+            self.enemies = [npc for npc in self.enemies if npc.health > 0]
+            
             # Update all NPCs
             for enemy in self.enemies:
                 enemy.update(self.player, self.collision_manager)
