@@ -28,7 +28,7 @@ class Weapons:
 class NoWeapon(Weapons):
     """A melee weapon that swings in front of the player."""
     def __init__(self, owner):
-        self.attack_duration = 10
+        self.attack_duration = 1
         self.attack_timer = 0
         super().__init__(owner, damage=owner.damage, attack_size=(RADIUS_SIZE * 2, RADIUS_SIZE * 2))
 

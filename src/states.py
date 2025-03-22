@@ -87,3 +87,8 @@ class FollowingState(NpcState):
         dy = player.yPosition - self.character.yPosition
         distance = (dx**2 + dy**2) ** 0.5
         return distance > self.character.vision  # Lose sight range
+    
+
+class CloseState(NpcState):
+    def attack(self, player, collision_manager):
+        pass
