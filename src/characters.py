@@ -6,11 +6,10 @@ import random
 
 class Characters:
   next_id = 0
-  def __init__(self, sprite, name = "npc", color = "red"):
+  def __init__(self, sprite, name = "npc"):
     # Basic Player Attributes
     Characters.next_id += 1
     self.id = Characters.next_id
-    self.color = color
     self.name = name
     self.sprite = sprite
     self.health = 100
@@ -20,8 +19,7 @@ class Characters:
     self.height = 2 * RADIUS_SIZE
     self.damage = 10
 
-        # Clan and Reputation
-    self.clan = "None"
+        # Reputation
     self.clan_points = 0
     self.reputation = {
         "dangerous": 0,

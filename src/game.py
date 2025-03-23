@@ -12,9 +12,12 @@ class Game:
         self.surface.fill(GREEN)
         self.clock = pygame.time.Clock()
         pygame.display.set_caption(TITLE)
-        self.enemies = [NPC(self.surface) for _ in range(3)]
+        self.enemies = [NPC(self.surface, clan = "RED") for _ in range(1)]
+        self.allies = [NPC(self.surface, clan = "BLUE") for _ in range(1)]
         self.player = Player(self.surface, "Josh")
-        self.collision_manager = CollisionManager(self.player, self.enemies)
+        self.npcs = self.enemies + self.allies
+        self.collision_manager = CollisionManager(self.player, self.npcs)
+        self.characters =  self.npcs + [self.player]
 
     def run(self):
         running = True
@@ -52,18 +55,18 @@ class Game:
 
             self.clock.tick(FPS)
 
-            self.enemies = [npc for npc in self.enemies if npc.health > 0]
+            self.npcs = [npc for npc in self.npcs if npc.health > 0]
             
             # Update all NPCs
-            for enemy in self.enemies:
-                enemy.update(self.player, self.collision_manager)
+            for npc in self.npcs:
+                npc.update(self.characters, self.collision_manager)
 
             self.player.update(self.collision_manager)
 
             self.surface.fill(GREEN)
             # Draw all NPCs
-            for enemy in self.enemies:
-                enemy.draw(self.surface)
+            for npc in self.npcs:
+                npc.draw(self.surface)
 
             self.player.draw(self.surface)
             pygame.display.update()

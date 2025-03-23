@@ -18,15 +18,21 @@ class IdleState(NpcState):
         self.move_timer = 0  # Initialize the timer
         self.direction = (0, 0)  # Start standing still
 
-    def move(self, player, collision_manager):
-        if self._enemy_is_close(player):
-            print(f"{self.character.name} sees an enemy! Switching to FollowingState.")
-            self.character.set_state(FollowingState(self.character))
+    def move(self, characters, collision_manager):
+        # The npc checks each character to see if an enemy is close 
+        print(self.character.clan)
+        for character in characters:
+            print(character.clan)
+            if character.clan != self.character.clan and self._enemy_is_close(character):
+                print(f"{self.character.name} sees an enemy! Switching to FollowingState.")
+                self.character.set_state(FollowingState(self.character))
+                self.character.target = [character]
         self._move_randomly(collision_manager)
         
-    def _enemy_is_close(self, player):
-        dx = player.xPosition - self.character.xPosition
-        dy = player.yPosition - self.character.yPosition
+    def _enemy_is_close(self, enemy):
+        # The NPC notices  or not an enemy(player) within his range
+        dx = enemy.xPosition - self.character.xPosition
+        dy = enemy.yPosition - self.character.yPosition
         distance = (dx**2 + dy**2) ** 0.5
         return distance < self.character.vision  # Detection range
     
@@ -62,33 +68,62 @@ class IdleState(NpcState):
 
 
 class FollowingState(NpcState):
-    def move(self, player, collision_manager):
+    def move(self, characters, collision_manager):
+        # Now follows the target
         dx = 0
         dy = 0
-        if player.xPosition > self.character.xPosition + RADIUS_SIZE:
+        target = self.character.target[0]
+        if target.xPosition > self.character.xPosition + RADIUS_SIZE:
             dx = self.character.speed
-        elif player.xPosition + RADIUS_SIZE < self.character.xPosition:
+        elif target.xPosition + RADIUS_SIZE < self.character.xPosition:
             dx = -self.character.speed
-        if player.yPosition > self.character.yPosition + RADIUS_SIZE:
+        if target.yPosition > self.character.yPosition + RADIUS_SIZE:
             dy = self.character.speed
-        elif player.yPosition + RADIUS_SIZE < self.character.yPosition:
+        elif target.yPosition + RADIUS_SIZE < self.character.yPosition:
             dy = -self.character.speed
 
         if not collision_manager.is_colliding_circle(self.character, dx, dy):
             self.character.xPosition += dx
             self.character.yPosition += dy
 
-        if self._player_is_far(player):
-            print(f"{self.character.name} lost sight of the player. Switching to IdleState.")
+        if self._target_is_far(target):
+            # print(f"{self.character.name} lost sight of the target. Switching to IdleState.")
             self.character.set_state(IdleState(self.character))
 
-    def _player_is_far(self, player):
+        if self._target_is_close(target):
+            # print(f"{self.character.name} is next to the target. Switching to CloseState.")
+            self.character.set_state(CloseState(self.character))
+
+    def _target_is_far(self, player):
         dx = player.xPosition - self.character.xPosition
         dy = player.yPosition - self.character.yPosition
         distance = (dx**2 + dy**2) ** 0.5
         return distance > self.character.vision  # Lose sight range
     
+    def _target_is_close(self, player):
+        dx = player.xPosition - self.character.xPosition
+        dy = player.yPosition - self.character.yPosition
+        distance = (dx**2 + dy**2) ** 0.5
+        return distance <= 2.2*RADIUS_SIZE # Quite close
 
 class CloseState(NpcState):
-    def attack(self, player, collision_manager):
-        pass
+    def move(self, characters, collision_manager):
+        target = self.character.target[0]
+        if self._target_is_far(target):
+            # print(f"{self.character.name} target is far. Switching to Following State.")
+            self.character.set_state(FollowingState(self.character))
+
+    def _target_is_far(self, target):
+        dx = target.xPosition - self.character.xPosition
+        dy = target.yPosition - self.character.yPosition
+        distance = (dx**2 + dy**2) ** 0.5
+        return distance > 2.2*RADIUS_SIZE 
+
+
+# In States Class
+# Once an npc gets close enough to a player
+# He will go from Following to Closestate
+# In Npc Class
+# He will be able to attack the player using the weapons 
+# In Player Class
+# The player will take damage
