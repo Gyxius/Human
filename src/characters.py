@@ -1,6 +1,8 @@
 from sprites import *
 from states import *
 from settings import *
+from healthbar import *
+
 import random
 
 
@@ -17,6 +19,7 @@ class Characters:
     self.profession = "Unemployed"
     self.width = 2 * RADIUS_SIZE
     self.height = 2 * RADIUS_SIZE
+    self.healthbar = Healthbar(self)
     self.damage = 10
 
         # Reputation

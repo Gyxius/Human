@@ -21,6 +21,7 @@ class Player(Characters):
         self.player = True 
         self.damage = 30
         self.weapon = NoWeapon(self)
+        self.healthbar = Healthbar(self)
 
     def move(self, collision_manager):
         self.dx = self.dy = 0  # reset every frame
@@ -46,7 +47,8 @@ class Player(Characters):
         # Draw the attack
         self.weapon.draw(surface) 
         # Draw the health bar
-        self.healthbar = Sprites.Rectangle(surface, LIGHT_GREEN, self.xPosition - 20, self.yPosition + 30, self.health // 2, 10, 0)
+        # self.healthbar = Sprites.Rectangle(surface, LIGHT_GREEN, self.xPosition - 20, self.yPosition + 30, self.health // 2, 10, 0)
+        self.healthbar.draw(surface)
 
     def update(self, collision_manager):
         # Move player based on held keys
