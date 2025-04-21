@@ -41,8 +41,12 @@ class Player(Characters):
 
 
     def draw(self, surface):
+        # Draw the sprite
         self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition)
+        # Draw the attack
         self.weapon.draw(surface) 
+        # Draw the health bar
+        self.healthbar = Sprites.Rectangle(surface, LIGHT_GREEN, self.xPosition - 20, self.yPosition + 30, self.health // 2, 10, 0)
 
     def update(self, collision_manager):
         # Move player based on held keys

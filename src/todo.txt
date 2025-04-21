@@ -1,0 +1,3 @@
+See when the npcs are attacking each other
+
+Make the enemy follows the closest person not blindly the player

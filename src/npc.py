@@ -25,6 +25,9 @@ class NPC(Characters):
     
   def draw(self, surface):
     self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition)
+    # Draw the health bar
+    self.healthbar = Sprites.Rectangle(surface, LIGHT_GREEN, self.xPosition - 20, self.yPosition + 30, self.health // 2, 10, 0)
+
 
 
   def update(self, characters, collision_manager):
