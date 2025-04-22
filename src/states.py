@@ -23,6 +23,8 @@ class IdleState(NpcState):
         # print(self.character.clan)
         for character in characters:
             # print(character.clan)
+            if not character.alive:  # Skip dead characters
+                continue
             if character.clan != self.character.clan and self._enemy_is_close(character):
                 print(f"{self.character.name} sees an enemy! Switching to FollowingState.")
                 self.character.set_state(FollowingState(self.character))
@@ -87,6 +89,10 @@ class FollowingState(NpcState):
             self.character.yPosition += dy
 
         if self._target_is_far(target):
+            # print(f"{self.character.name} lost sight of the target. Switching to IdleState.")
+            self.character.set_state(IdleState(self.character))
+
+        if target.health < 0:
             # print(f"{self.character.name} lost sight of the target. Switching to IdleState.")
             self.character.set_state(IdleState(self.character))
 

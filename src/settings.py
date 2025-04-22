@@ -1,6 +1,6 @@
 # Window settings
-WIDTH = 800
-HEIGHT = 500
+WIDTH = 1200
+HEIGHT = 700
 TITLE = "HUMAN"
 FPS = 60
 

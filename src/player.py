@@ -68,9 +68,9 @@ class Player(Characters):
                 npcs_attacked = collision_manager.rectangle_collision(rect = self.weapon.attack_rect)   # Check if the attack (Rectangle Square collides with an enemy)
                 for npc in npcs_attacked:
                     print(f"{npc.id} is being attacked by player")
-                    npc.take_damage(self.weapon.damage, collision_manager.npcs)  # Make NPC take damage!
+                    npc.take_damage(self.weapon.damage, collision_manager.npcs, self)  # Make NPC take damage!
 
-    def take_damage(self, damage, npc_list):
+    def take_damage(self, damage, npc_list, attacker):
       """Called when the player is hit"""
       self.health -= damage
       print(f"Player took {damage} damage! Health: {self.health}")

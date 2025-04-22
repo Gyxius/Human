@@ -26,18 +26,23 @@ class NPC(Characters):
     self.target = [] # It will contain only one target but I made a list just in case
     
   def draw(self, surface):
-    self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
-    # Draw the health bar
-    self.healthbar.draw(surface)
+    if self.alive:
+      self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
+      self.healthbar.draw(surface)
 
 
   def update(self, characters, collision_manager):
-    if self.health > 0:
+    if self.alive:
+      if self.target and not self.target[0].alive:
+        print(f"NPC {self.id} target is dead. Switching to IdleState.")
+        self.target = []
+        self.set_state(IdleState(self))
+
       self.state.move(characters, collision_manager)  # Delegate behavior to the current state
-    if self.is_in_state(CloseState):
-      self.weapon.update() 
-      self.attack_target(collision_manager)
-    
+      if self.is_in_state(CloseState):
+        self.weapon.update() 
+        self.attack_target(collision_manager)
+
   
   def set_state(self, state):
      self.state = state
@@ -46,20 +51,35 @@ class NPC(Characters):
   def collision_block(self):
     return pygame.Rect(self.xPosition - RADIUS_SIZE, self.yPosition - RADIUS_SIZE, self.width, self.height)
 
-  def take_damage(self, damage, npc_list):
+  def take_damage(self, damage, npc_list, attacker):
       """Called when the NPC is hit"""
       self.health -= damage
-      print(f"NPC {self.id} took {damage} damage! Health: {self.health}")
-      if self.health <= 0 and self in npc_list:
-          print(f"NPC {self.id} has died!")
-          npc_list.remove(self)  # Remove from the game
+      if (self.target and self.target[0]):
+        self.target[0] = attacker
+        print(f"NPC {self.id} took {damage} damage! Health: {self.health}")
+        if self.health <= 0:
+            self.alive = False
+            print(f"NPC {self.id} has died!")
+            if self in npc_list:
+                npc_list.remove(self)
+            # Cleanup targets for others
+            for npc in npc_list:
+                if npc.target and npc.target[0] == self:
+                    npc.target = []
+                    npc.set_state(IdleState(npc))
 
   def attack_target(self, collision_manager):
+    if self.target and not self.target[0].alive:
+        print(f"NPC {self.id} target died during attack. Switching to IdleState.")
+        self.target = []
+        self.set_state(IdleState(self))
+        return
+  
     if not self.weapon.active and self.is_in_state(CloseState):
       print("attack enemy")
       self.weapon.attack(self)
       target = self.target[0]
-      target.take_damage(self.weapon.damage, collision_manager.npcs)  # Make NPC take damage!
+      target.take_damage(self.weapon.damage, collision_manager.npcs, self)  # Make NPC take damage!
 
   def is_in_state(self, state_class):
     return isinstance(self.state, state_class)

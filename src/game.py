@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 from map import *
 from collisionManager import *
+from targetManager import *
 # from npc import *
 from npcFactory import *
 from player import *
@@ -21,10 +22,11 @@ class Game:
             self.enemy_factory.create_npc("RED", "small")
             ]
 
-        self.allies = [NPC(self.surface, clan = "BLUE") for _ in range(1)]
+        self.allies = [NPC(self.surface, clan = "BLUE") for _ in range(2)]
         self.player = Player(self.surface, "Josh")
         self.npcs = self.enemies + self.allies
         self.collision_manager = CollisionManager(self.player, self.npcs)
+        self.target_manager = TargetManager(self.npcs, self.player)
         self.characters =  self.npcs + [self.player]
 
     def run(self):
