@@ -2,7 +2,8 @@ import pygame
 from pygame.locals import *
 from map import *
 from collisionManager import *
-from npc import *
+# from npc import *
+from npcFactory import *
 from player import *
 
 class Game:
@@ -12,7 +13,14 @@ class Game:
         self.surface.fill(GREEN)
         self.clock = pygame.time.Clock()
         pygame.display.set_caption(TITLE)
-        self.enemies = [NPC(self.surface, clan = "RED") for _ in range(1)]
+        # self.enemies = [NPC(self.surface, clan = "RED") for _ in range(1)]
+        self.enemy_factory = npcFactory(self.surface)
+        self.enemies = [
+            self.enemy_factory.create_npc("RED"),
+            self.enemy_factory.create_npc("RED", "large"),
+            self.enemy_factory.create_npc("RED", "small")
+            ]
+
         self.allies = [NPC(self.surface, clan = "BLUE") for _ in range(1)]
         self.player = Player(self.surface, "Josh")
         self.npcs = self.enemies + self.allies

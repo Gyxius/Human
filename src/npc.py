@@ -3,15 +3,16 @@ from weapons import *
 
 
 class NPC(Characters):
-  def __init__(self, surface, clan):
+  def __init__(self, surface, clan, radius = RADIUS_SIZE):
     self.xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
     self.yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
+    self.radius = radius
     self.clan = clan
     if self.clan == "RED":
       self.color = RED
     elif self.clan == "BLUE":
       self.color = BLUE
-    sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition)
+    sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
     super().__init__(sprite, "npc")
     self.state = IdleState(self)
     self.speed = 1
@@ -24,7 +25,7 @@ class NPC(Characters):
     self.target = [] # It will contain only one target but I made a list just in case
     
   def draw(self, surface):
-    self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition)
+    self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
     # Draw the health bar
     self.healthbar.draw(surface)
 
