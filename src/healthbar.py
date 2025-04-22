@@ -15,12 +15,10 @@ class Healthbar:
         color = GREEN_HEALTH
         if self.character.health <= 60:
             color = YELLOW_HEALTH
-            print("here")
         if self.character.health <= 40:
             color = ORANGE_HEALTH
         if self.character.health <= 20:
             color = RED_HEALTH
-        print(self.character.health )
         pygame.draw.rect(surface, color, rect, width=0)
         return rect
         

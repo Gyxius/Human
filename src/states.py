@@ -20,9 +20,9 @@ class IdleState(NpcState):
 
     def move(self, characters, collision_manager):
         # The npc checks each character to see if an enemy is close 
-        print(self.character.clan)
+        # print(self.character.clan)
         for character in characters:
-            print(character.clan)
+            # print(character.clan)
             if character.clan != self.character.clan and self._enemy_is_close(character):
                 print(f"{self.character.name} sees an enemy! Switching to FollowingState.")
                 self.character.set_state(FollowingState(self.character))
