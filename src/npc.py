@@ -3,7 +3,7 @@ from weapons import *
 
 
 class NPC(Characters):
-  def __init__(self, surface, clan, radius = RADIUS_SIZE):
+  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 1, vision = 200, damage = 10):
     self.xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
     self.yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
     self.radius = radius
@@ -15,8 +15,9 @@ class NPC(Characters):
     sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
     super().__init__(sprite, "npc")
     self.state = IdleState(self)
-    self.speed = 1
-    self.vision = 200 # How far they can see
+    self.speed = speed
+    self.damage = damage
+    self.vision = vision # How far they can see
     self.dx = 0
     self.dy = 0
     self.attack_speed = 5
