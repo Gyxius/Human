@@ -41,7 +41,7 @@ class CollisionManager:
         """
         Check if a rectangle collides with any NPC circle.
         Add collided NPCs to self.npcs_attacked.
-        Return True if there are any collisions, False otherwise.
+        Return the set containing all the nps attacked
         """
         rect_x, rect_y, rect_w, rect_h = rect.x, rect.y, rect.width, rect.height
         self.npcs_attacked = set()

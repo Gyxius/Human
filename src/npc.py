@@ -65,6 +65,8 @@ class NPC(Characters):
 
   def take_damage(self, damage, npc_list, attacker):
       """Called when the NPC is hit"""
+      if attacker.clan == self.clan:
+         return
       self.health -= damage
       if (self.target and self.target[0]):
         self.target[0] = attacker
