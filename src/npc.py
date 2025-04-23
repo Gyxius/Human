@@ -4,8 +4,10 @@ from weapons import *
 
 class NPC(Characters):
   def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 1, vision = 200, damage = 10):
-    self.xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
-    self.yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
+    # self.xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
+    # self.yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
+    self.xPosition = 0
+    self.yPosition = 0
     self.radius = radius
     self.clan = clan
     if self.clan == "RED":
@@ -24,6 +26,16 @@ class NPC(Characters):
     self.weapon = NoWeapon(self)
     self.player = False 
     self.target = [] # It will contain only one target but I made a list just in case
+
+  def spawn(self, collision_manager):
+    xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
+    yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
+    while(collision_manager.is_colliding_circle(self, xPosition, yPosition)):
+        xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
+        yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
+
+    self.xPosition = xPosition
+    self.yPosition = yPosition
     
   def draw(self, surface):
     if self.alive:

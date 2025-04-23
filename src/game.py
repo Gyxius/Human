@@ -28,6 +28,7 @@ class Game:
         self.collision_manager = CollisionManager(self.player, self.npcs)
         self.target_manager = TargetManager(self.npcs, self.player)
         self.characters =  self.npcs + [self.player]
+        [character.spawn(self.collision_manager) for character in self.characters] # Spawn the characters 
 
     def run(self):
         running = True

@@ -39,6 +39,9 @@ class Characters:
 
   def draw():
      pass
+
+  def spawn(self, collision_manager):
+    pass
   
   # Economic Actions
   def gather_wood(self):
