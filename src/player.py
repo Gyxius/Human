@@ -18,10 +18,22 @@ class Player(Characters):
         self.dy = 0
         self.attack_sprite = None
         self.attack_speed = 1 # In seconds, the lower the better, how many seconds between each attack
+        self.health_timer = 0 
+        self.regeneration_time = 2
         self.player = True 
         self.damage = 30
         self.weapon = NoWeapon(self)
         self.healthbar = Healthbar(self)
+
+    def regenerate_health(self):
+        # Decrease the health timer
+        if self.health_timer > 0:
+            self.health_timer -= 1
+        else:
+            # Regenerate health when timer hits 0
+            if self.health < 100:
+                self.health += self.regeneration_time
+            self.health_timer = 100  # Reset timer
 
     def move(self, collision_manager):
         self.dx = self.dy = 0  # reset every frame
@@ -55,6 +67,7 @@ class Player(Characters):
         self.move(collision_manager)
         self.weapon.update() 
         self.attack_target(collision_manager)
+        self.regenerate_health()
 
     @property
     def collision_block(self):

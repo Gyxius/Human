@@ -40,7 +40,7 @@ class IdleState(NpcState):
         else:
             # Regenerate health when timer hits 0
             if self.character.health < 100:
-                self.character.health += 1
+                self.character.health += 2
             self.health_timer = 100  # Reset timer
         
     def _enemy_is_close(self, enemy):
