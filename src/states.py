@@ -16,6 +16,7 @@ class IdleState(NpcState):
     def __init__(self, character):
         super().__init__(character)
         self.move_timer = 0  # Initialize the timer
+        self.health_timer = 0  # Initialize the timer
         self.direction = (0, 0)  # Start standing still
 
     def move(self, characters, collision_manager):
@@ -30,6 +31,17 @@ class IdleState(NpcState):
                 self.character.set_state(FollowingState(self.character))
                 self.character.target = [character]
         self._move_randomly(collision_manager)
+        self._regenerate_health()
+
+    def _regenerate_health(self):
+        # Decrease the health timer
+        if self.health_timer > 0:
+            self.health_timer -= 1
+        else:
+            # Regenerate health when timer hits 0
+            if self.character.health < 100:
+                self.character.health += 1
+            self.health_timer = 100  # Reset timer
         
     def _enemy_is_close(self, enemy):
         # The NPC notices  or not an enemy(player) within his range
