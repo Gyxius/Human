@@ -17,8 +17,8 @@ class Game:
         pygame.display.set_caption(TITLE)
         
         # Create NPCs
-        self.enemies = [SmartNPC(self.surface, speed = 5, clan="RED") for _ in range(1)]
-        self.allies = [SmartNPC(self.surface, speed = 5, clan="BLUE") for _ in range(1)]
+        self.enemies = [SmartNPC(self.surface, speed=5, clan="RED") for _ in range(1)]
+        self.allies = [SmartNPC(self.surface, speed=5, clan="BLUE") for _ in range(1)]
 
         self.player = Player(self.surface, "Josh")
         self.npcs = self.enemies + self.allies
@@ -33,26 +33,35 @@ class Game:
     def reset(self):
         for npc in self.npcs:
             npc.reset(self.collision_manager)
-        return
+        print("Game reset")
 
-    def run_episode(self, max_steps=100):
+    def run_episode(self, episode, max_steps=2000):
         self.reset()
         step_count = 0
         done = False
+        running = True
 
-        while not done and step_count < max_steps:
+        print("Starting episode")
+        while running and not done and step_count < max_steps:
             step_count += 1
             self.clock.tick(FPS)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    done = True
 
             self.npcs = [npc for npc in self.npcs if npc.health > 0]
 
             for npc in self.npcs:
                 state = npc.get_state(self.npcs)
-                action = npc.choose_action(state)  # <-- USE THIS instead of random.choice
+                action = npc.choose_action(state)  # Epsilon-greedy
                 reward, done = npc.act(action, self.collision_manager, self.npcs)
                 next_state = npc.get_state(self.npcs)
-                npc.update_q_table(state, action, reward, next_state)  # <-- VERY IMPORTANT
+                npc.update_q_table(state, action, reward, next_state)
                 npc.total_reward += reward
+
+                print(f"episode:{episode} NPC {npc.id} Step {step_count}: State: {state}, Action: {action}, Reward: {reward}, Total: {npc.total_reward}")
 
             # Update and draw
             self.surface.fill(GREEN)
@@ -62,12 +71,12 @@ class Game:
             self.player.draw(self.surface)
             pygame.display.update()
 
-        return
+        print("Episode ended")
 
-    def train(self, episodes=10):
+    def train(self, episodes=500):
         for ep in range(episodes):
             print(f"=== Episode {ep + 1} ===")
-            self.run_episode(max_steps=100)
+            self.run_episode(ep, max_steps=1000)
         pygame.quit()
 
 # --- Main Script ---

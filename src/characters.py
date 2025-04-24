@@ -21,6 +21,7 @@ class Characters:
     self.height = 2 * RADIUS_SIZE
     self.healthbar = Healthbar(self)
     self.alive = True 
+    self.rewards = 0
 
         # Reputation
     self.clan_points = 0

@@ -61,6 +61,7 @@ class Player(Characters):
         # Draw the health bar
         # self.healthbar = Sprites.Rectangle(surface, LIGHT_GREEN, self.xPosition - 20, self.yPosition + 30, self.health // 2, 10, 0)
         self.healthbar.draw(surface)
+        # self.rewards.draw(surface)
 
     def update(self, collision_manager):
         # Move player based on held keys
