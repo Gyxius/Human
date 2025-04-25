@@ -2,10 +2,11 @@ import pygame
 from settings import *
 
 class CollisionManager:
-    def __init__(self, player, npcs, obstacles=None):
+    def __init__(self, player, npcs, grid, obstacles=None):
         self.player = player
         self.npcs = npcs
         self.obstacles = obstacles or []
+        self.grid = grid
 
     def is_colliding_circle(self, character, dx, dy):
         """
@@ -26,6 +27,24 @@ class CollisionManager:
             return True
 
         return False
+    
+    def grid_colliding_circle(self, character, x, y, grid):
+        """
+        Check if `character`'s future grid position overlap with any other character.
+        """
+
+        if (x < 0 or x > grid.grid_width or y < 0 or y> grid.grid_height):
+            return True  # Block movement outside screen
+
+        # Check all NPCs
+        for npc in self.npcs:
+            if character.id != npc.id and npc.x == x and npc.y == y:
+                return True
+            
+        if character.id != self.player.id and self.player.x == x and self.player.y == y:
+            return True
+
+        return False
 
     @staticmethod
     def circle_collision(x1, y1, obj2):
@@ -36,6 +55,7 @@ class CollisionManager:
         dy = y1 - obj2.yPosition
         distance = (dx**2 + dy**2)**0.5
         return distance <= (2 * RADIUS_SIZE)  # Total diameter (both radii)
+    
     
     def rectangle_collision(self, rect):
         """

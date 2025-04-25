@@ -4,10 +4,11 @@ from settings import *
 
 
 class Player(Characters):
-    def __init__(self, surface, name):
+    def __init__(self, surface, name, grid):
         
-        self.xPosition = WIDTH//2
-        self.yPosition = HEIGHT//2
+        self.x = 10
+        self.y = 0
+        self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
         self.speed = 2
         self.moving = {"up": False, "down": False, "left": False, "right": False, "space": False}
         self.color = LIGHT_GREEN
@@ -92,3 +93,12 @@ class Player(Characters):
       if self.health <= 0:
           print(f"Player {self.id} has died!")
           print("Game over")
+
+    def spawn(self, collision_manager, grid):
+        xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
+        yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
+        while(collision_manager.is_colliding_circle(self, xPosition, yPosition)):
+            xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
+            yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
+
+        self.xPosition, self.yPosition = grid.grid_to_pixel(10, 0)

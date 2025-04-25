@@ -3,11 +3,13 @@ from weapons import *
 from reward import *
 
 class NPC(Characters):
-  def __init__(self, surface, clan, q_table, radius = RADIUS_SIZE, speed = 1, vision = 200, damage = 10):
+  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 1, vision = 200, damage = 10):
     # self.xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
     # self.yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
     self.xPosition = 0
     self.yPosition = 0
+    self.x = 0
+    self.y = 0
     self.radius = radius
     self.clan = clan
     if self.clan == "RED":
@@ -29,17 +31,16 @@ class NPC(Characters):
     self.wood = 0
     self.attack_reward = 0
     self.rewards = Reward()
-    self.q_table = q_table
 
-  def spawn(self, collision_manager):
-    xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
-    yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
-    while(collision_manager.is_colliding_circle(self, xPosition, yPosition)):
-        xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
-        yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
+  def spawn(self, collision_manager, grid):
+    xPosition = random.randint(0, grid.grid_width - 1)
+    yPosition = random.randint(0, grid.grid_height - 1 )
+    while(collision_manager.grid_colliding_circle(self, xPosition, yPosition, grid)):
+      xPosition = random.randint(0, grid.grid_width - 1)
+      yPosition = random.randint(0, grid.grid_height - 1 )
 
-    self.xPosition = xPosition
-    self.yPosition = yPosition
+    self.x, self.y = xPosition, yPosition
+    self.xPosition, self.yPosition = grid.grid_to_pixel(xPosition, yPosition)
     
   def draw(self, surface):
     if self.alive:
