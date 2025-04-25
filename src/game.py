@@ -31,7 +31,26 @@ class Game:
         for character in self.characters:
             character.spawn(self.collision_manager)
 
-    def reset(self):
+    def reset_npcs(self):
+        # Recreate NPC objects
+        self.enemies = [SmartNPC(self.surface, speed=5, clan="RED") for _ in range(4)]
+        self.allies = [SmartNPC(self.surface, speed=5, clan="BLUE") for _ in range(4)]
+        # Reinitialize npcs list
+        self.npcs = self.enemies + self.allies
+
+    def reset_managers(self):
+        # Reinitialize managers
+        self.collision_manager = CollisionManager(self.player, self.npcs)
+        self.target_manager = TargetManager(self.npcs, self.player)
+
+    def spawn_chacaters(self):
+        # Respawn characters
+        for npc in self.npcs:
+            npc.spawn(self.collision_manager)
+
+        self.player.spawn(self.collision_manager)
+
+    def reset_game(self):
         # Save Q-tables
         saved_q_tables = [npc.q_table for npc in self.npcs]
 
@@ -39,12 +58,8 @@ class Game:
         with open('q_table.pkl', 'wb') as f:
             pickle.dump(saved_q_tables, f)
 
-        # Recreate NPC objects
-        self.enemies = [SmartNPC(self.surface, speed=5, clan="RED") for _ in range(4)]
-        self.allies = [SmartNPC(self.surface, speed=5, clan="BLUE") for _ in range(4)]
+        self.reset_npcs()
 
-        # Reinitialize npcs list
-        self.npcs = self.enemies + self.allies
 
         # Load Q-tables
         with open('q_table.pkl', 'rb') as f:
@@ -53,18 +68,13 @@ class Game:
         for npc, q_table in zip(self.npcs, saved_q_tables):
             npc.q_table = q_table
 
-        # Reinitialize managers
-        self.collision_manager = CollisionManager(self.player, self.npcs)
-        self.target_manager = TargetManager(self.npcs, self.player)
+        self.reset_managers()
+        self.spawn_chacaters()
 
-        # Respawn characters
-        for npc in self.npcs:
-            npc.spawn(self.collision_manager)
 
-        self.player.spawn(self.collision_manager)
 
     def run_episode(self, episode, max_steps=2000, render=False):
-        self.reset()
+        self.reset_game()
         step_count = 0
         done = False
         running = True
@@ -119,7 +129,7 @@ class Game:
             saved_q_tables = pickle.load(f)
 
         for ep in range(watch_episodes):
-            self.reset()
+            self.reset_game()
             for npc, q_table in zip(self.npcs, saved_q_tables):
                 npc.q_table = q_table
             self.run_episode(ep, max_steps=max_steps, render=True)
@@ -127,15 +137,11 @@ class Game:
 
 
     def play(self):
-        # Load the trained Q-tables
         with open('q_table.pkl', 'rb') as f:
-            saved_q_tables = pickle.load(f)
-        
-        print(saved_q_tables)
-
+            saved_q_tables = pickle.load(f) # Load the Q-tables filled during training 
 
         # Reset the game and assign Q-tables to fresh NPCs
-        self.reset()  # Ensures NPCs are recreated
+        self.reset_game()  # Ensures NPCs are recreated
 
         for npc, q_table in zip(self.npcs, saved_q_tables):
             npc.q_table = q_table
