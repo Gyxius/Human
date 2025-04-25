@@ -8,7 +8,7 @@ class Reward:
 
     def reward(self, value, reason=""):
         self.total_reward += value
-        print(f"Reward {value} for {reason} -> Total: {self.total_reward}")
+        # print(f"Reward {value} for {reason} -> Total: {self.total_reward}")
 
     def reset(self):
         self.total_reward = 0

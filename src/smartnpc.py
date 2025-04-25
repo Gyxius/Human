@@ -10,8 +10,12 @@ class SmartNPC(Characters):
 		self.clan = clan
 		if self.clan == "RED":
 			self.color = RED
+			# self.xPosition = 20
+			# self.yPosition = 20
 		elif self.clan == "BLUE":
 			self.color = BLUE
+			# self.xPosition = 50
+			# self.yPosition = 50
 		sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
 		super().__init__(sprite, "npc")
 		self.state = IdleState(self)
@@ -25,36 +29,53 @@ class SmartNPC(Characters):
 		self.player = False
 		self.target = []
 		self.wood = 0
-		self.attack_reward = 0
+		self.attack_reward = 0  # TODO BUILD THE REWARD SYSTEM USING THE CLASS
 		self.rewards = Reward()
-		self.actions = ['MOVE_UP', 'MOVE_DOWN', 'MOVE_LEFT', 'MOVE_RIGHT', 'ATTACK_PLAYER', 'IDLE']
+		self.actions = ['MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN', 'MOVE_RIGHT', 'ATTACK_PLAYER', 'IDLE']
 		self.total_reward = 0
 		self.q_table = {}  # Q-values for state-action pairs
-		self.epsilon = 0.1  # Exploration rate
+		self.epsilon = 0.05  # Exploration rate
 		self.alpha = 0.1    # Learning rate
 		self.gamma = 0.9    # Discount factor
 
 	def get_state(self, npc_list):
-		nearest_enemy = self.get_nearest_enemy(npc_list)
+		nearest_enemy = self.get_nearest_npcs(npc_list)
+		nearest_ally = self.get_nearest_npcs(npc_list, ally=True)
+
+		ally_dx, ally_dy, ally_health, ally_distance = 0, 0, 0, 0
+		enemy_dx, enemy_dy, enemy_health, enemy_distance = 0, 0, 0, 0
+
+		if nearest_ally:
+			ally_dx = nearest_ally.xPosition - self.xPosition
+			ally_dy = nearest_ally.yPosition - self.yPosition
+			ally_health = nearest_ally.health
+			ally_distance = ((ally_dx ** 2 + ally_dy ** 2) ** 0.5)
+
 		if nearest_enemy:
-			state = (
-				self.xPosition,
-				self.yPosition,
-				self.health,
-				nearest_enemy.xPosition,
-				nearest_enemy.yPosition,
-				nearest_enemy.health
-			)
-		else:
-			state = (self.xPosition, self.yPosition, self.health, 0, 0, 0)
+			enemy_dx = nearest_enemy.xPosition - self.xPosition
+			enemy_dy = nearest_enemy.yPosition - self.yPosition
+			enemy_health = nearest_enemy.health
+			enemy_distance = ((enemy_dx ** 2 + enemy_dy ** 2) ** 0.5)
+
+
+		# State is now based on relative position and health values
+		state = (
+			int(self.health),
+			int(ally_dx),int(ally_dy), int(ally_health), int(ally_distance),
+			int(enemy_dx), int(enemy_dy), int(enemy_health), int(enemy_distance)
+		)
+
 		return state
 
-	def get_nearest_enemy(self, npc_list):
-		enemies = [npc for npc in npc_list if npc.clan != self.clan and npc.alive]
-		if not enemies:
+	def get_nearest_npcs(self, npc_list, ally=False):
+		if not ally:
+			npcs = [npc for npc in npc_list if npc.clan != self.clan and npc.alive]
+		else:
+			npcs = [npc for npc in npc_list if npc.clan == self.clan and npc.alive]
+		if not npcs:
 			return None
-		enemies.sort(key=lambda npc: ((npc.xPosition - self.xPosition) ** 2 + (npc.yPosition - self.yPosition) ** 2) ** 0.5)
-		return enemies[0]
+		npcs.sort(key=lambda npc: ((npc.xPosition - self.xPosition) ** 2 + (npc.yPosition - self.yPosition) ** 2) ** 0.5)
+		return npcs[0]
 
 	def spawn(self, collision_manager):
 		xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
@@ -65,15 +86,16 @@ class SmartNPC(Characters):
 		self.xPosition = xPosition
 		self.yPosition = yPosition
 
+
 	def draw(self, surface):
 		if self.alive:
 			self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
 			self.healthbar.draw(surface)
-			# font = pygame.font.Font('freesansbold.ttf', 20)
-			# text = font.render(str(int(self.total_reward)), True, BLACK, WHITE)
-			# textRect = text.get_rect()
-			# textRect.center = (self.xPosition, self.yPosition)
-			# surface.blit(text, textRect)
+			font = pygame.font.Font('freesansbold.ttf', 15)
+			text = font.render(str(int(self.total_reward)), True, BLACK, WHITE)
+			textRect = text.get_rect()
+			textRect.center = (self.xPosition, self.yPosition)
+			surface.blit(text, textRect)
 
 	def update(self, characters, collision_manager):
 		pass
@@ -91,7 +113,7 @@ class SmartNPC(Characters):
 		self.health -= damage
 		if self.target and self.target[0]:
 			self.target[0] = attacker
-		print(f"NPC {self.id} took {damage} damage! Health: {self.health}")
+		# print(f"NPC {self.id} took {damage} damage! Health: {self.health}")
 		self.rewards.reward(-5 - 0.5 * (100 - self.health), "Getting attacked")
 		if self.health <= 0:
 			self.alive = False
@@ -105,12 +127,12 @@ class SmartNPC(Characters):
 
 	def attack_target(self, collision_manager):
 		if self.target and not self.target[0].alive:
-			print(f"NPC {self.id} target died during attack. Switching to IdleState.")
+			# print(f"NPC {self.id} target died during attack. Switching to IdleState.")
 			self.target = []
 			self.set_state(IdleState(self))
 			return
 		if not self.weapon.active and self.is_in_state(CloseState):
-			print("attack enemy")
+			# print("attack enemy")
 			self.weapon.attack(self)
 			target = self.target[0]
 			target.take_damage(self.weapon.damage, collision_manager.npcs, self)
@@ -120,44 +142,34 @@ class SmartNPC(Characters):
 		reward = 0
 		done = False
 
-		low_health = self.health <= 20
-		very_low_health = self.health <= 10
-
 		if action == 'MOVE_UP':
 			self.yPosition -= self.speed
-			reward = -2 if not low_health else -1  # Less penalty when low health (escaping)
+			reward = -2
 		elif action == 'MOVE_DOWN':
 			self.yPosition += self.speed
-			reward = -2 if not low_health else -1
+			reward = -2
 		elif action == 'MOVE_LEFT':
 			self.xPosition -= self.speed
-			reward = -2 if not low_health else -1
+			reward = -2 
 		elif action == 'MOVE_RIGHT':
 			self.xPosition += self.speed
-			reward = -2 if not low_health else -1
+			reward = -2 
 		elif action == 'ATTACK_PLAYER':
-			nearest_enemy = self.get_nearest_enemy(npcs)
+			nearest_enemy = self.get_nearest_npcs(npcs)
 			if nearest_enemy and self._target_is_close(nearest_enemy):
 				self.target = [nearest_enemy]
 				self.attack_target(collision_manager)
 				nearest_enemy.take_damage(self.weapon.damage, collision_manager.npcs, self)
-				if low_health:
-					reward = -100  # Punish attacking while weak
-				else:
-					reward = 200  # Reward if healthy
+				reward = 200  # Reward if healthy
 			else:
 				reward = -5
 		elif action == 'IDLE':
 			self.health = min(100, self.health + 1)  # Recover health
-			reward = 5 if low_health else -1  # Reward resting when low health
+			reward = 5
 
 		# Clamp position to stay in screen
 		self.xPosition = max(RADIUS_SIZE, min(WIDTH - RADIUS_SIZE, self.xPosition))
 		self.yPosition = max(RADIUS_SIZE, min(HEIGHT - RADIUS_SIZE, self.yPosition))
-
-		# Add fear-based penalty for being very low health
-		if very_low_health:
-			reward -= 10  # Fear of imminent death
 
 		self.total_reward += reward
 
@@ -191,7 +203,10 @@ class SmartNPC(Characters):
 				self.q_table[state] = [0] * len(self.actions)
 			return self.actions[self.q_table[state].index(max(self.q_table[state]))]
 
-	def update_q_table(self, state, action, reward, next_state):
+	def update_q_table(self, state, action, reward, next_state, training_mode=False):
+		if not training_mode:
+			return  # Don't update during play
+
 		if state not in self.q_table:
 			self.q_table[state] = [0] * len(self.actions)
 		if next_state not in self.q_table:
