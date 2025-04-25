@@ -166,12 +166,12 @@ class SmartNPC(Characters):
 				self.target = [nearest_enemy]
 				self.attack_target(collision_manager)
 				nearest_enemy.take_damage(self.weapon.damage, collision_manager.npcs, self)
-				reward = 200  # Reward if healthy
+				reward = 2000  # Reward if healthy
 			else:
 				reward = -5
 		elif action == 'IDLE':
 			self.health = min(100, self.health + 1)  # Recover health
-			reward = 5
+			reward = -2
 
 		# Clamp position to stay in screen
 		self.xPosition = max(RADIUS_SIZE, min(WIDTH - RADIUS_SIZE, self.xPosition))
