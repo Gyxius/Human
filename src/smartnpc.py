@@ -34,11 +34,17 @@ class SmartNPC(Characters):
 		self.actions = ['MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN', 'MOVE_RIGHT', 'ATTACK_PLAYER', 'IDLE']
 		self.total_reward = 0
 		self.q_table = {}  # Q-values for state-action pairs
-		self.epsilon = 0.05  # Exploration rate
+		self.epsilon = 0.3  # Exploration rate
 		self.alpha = 0.1    # Learning rate
 		self.gamma = 0.9    # Discount factor
 
+
+
+
 	def get_state(self, npc_list):
+		def bucketize(value, bucket_size):
+			return int(value // bucket_size)
+		MAX_DISTANCE = (WIDTH ** 2 + HEIGHT ** 2) ** 0.5  # Screen diagonal distance
 		nearest_enemy = self.get_nearest_npcs(npc_list)
 		nearest_ally = self.get_nearest_npcs(npc_list, ally=True)
 
@@ -57,12 +63,12 @@ class SmartNPC(Characters):
 			enemy_health = nearest_enemy.health
 			enemy_distance = ((enemy_dx ** 2 + enemy_dy ** 2) ** 0.5)
 
-
-		# State is now based on relative position and health values
+		# Bucket sizes for dx/dy = 10, health = 10, distances normalized
+		bucket_size = 40
 		state = (
-			int(self.health),
-			int(ally_dx),int(ally_dy), int(ally_health), int(ally_distance),
-			int(enemy_dx), int(enemy_dy), int(enemy_health), int(enemy_distance)
+			bucketize(self.health, bucket_size),  # Self health bucket (0-10)
+			bucketize(ally_dx, bucket_size), bucketize(ally_dy, bucket_size), bucketize(ally_health, bucket_size), bucketize(ally_distance / MAX_DISTANCE * 10, 1),
+			bucketize(enemy_dx, bucket_size), bucketize(enemy_dy, bucket_size), bucketize(enemy_health, bucket_size), bucketize(enemy_distance / MAX_DISTANCE * 10, 1)
 		)
 
 		return state
