@@ -70,11 +70,12 @@ class IdleState(NpcState):
 
         # Apply movement only if the NPC is moving
         if self.direction != (0, 0):
-            dx = self.direction[0] * self.character.speed
-            dy = self.direction[1] * self.character.speed
-            if not collision_manager.is_colliding_circle(self.character, dx, dy):
-                self.character.xPosition += dx
-                self.character.yPosition += dy
+            dx = self.direction[0]
+            dy = self.direction[1]
+            if not collision_manager.grid_colliding_circle(self.character, self.character.x + dx, self.character.y + dy, collision_manager.grid):
+                self.character.x = dx + self.character.x
+                self.character.y = dy +  self.character.y
+                self.character.xPosition, self.character.yPosition = collision_manager.grid.grid_to_pixel(self.character.x, self.character.y)
 
         # Decrement timer each frame
         self.move_timer -= 1
@@ -87,29 +88,31 @@ class FollowingState(NpcState):
         dx = 0
         dy = 0
         target = self.character.target[0]
-        if target.xPosition > self.character.xPosition + RADIUS_SIZE:
-            dx = self.character.speed
-        elif target.xPosition + RADIUS_SIZE < self.character.xPosition:
-            dx = -self.character.speed
-        if target.yPosition > self.character.yPosition + RADIUS_SIZE:
-            dy = self.character.speed
-        elif target.yPosition + RADIUS_SIZE < self.character.yPosition:
-            dy = -self.character.speed
+        if target.x > self.character.x:
+            dx = 1
+        elif target.x < self.character.x:
+            dx = -1
+        if target.y > self.character.y:
+            dy = 1
+        elif target.y < self.character.y:
+            dy = -1
 
-        if not collision_manager.is_colliding_circle(self.character, dx, dy):
-            self.character.xPosition += dx
-            self.character.yPosition += dy
+        if not collision_manager.grid_colliding_circle(self.character, self.character.x + dx, self.character.x + dy, collision_manager.grid):
+            self.character.x = dx + self.character.x
+            self.character.y = dy +  self.character.y
+            self.character.xPosition, self.character.yPosition = collision_manager.grid.grid_to_pixel(self.character.x, self.character.y)
+
 
         if self._target_is_far(target):
-            # print(f"{self.character.name} lost sight of the target. Switching to IdleState.")
+            print(f"{self.character.name} lost sight of the target. Switching to IdleState.")
             self.character.set_state(IdleState(self.character))
 
         if target.health < 0:
-            # print(f"{self.character.name} lost sight of the target. Switching to IdleState.")
+            print(f"{self.character.name} lost sight of the target. Switching to IdleState.")
             self.character.set_state(IdleState(self.character))
 
         if self._target_is_close(target):
-            # print(f"{self.character.name} is next to the target. Switching to CloseState.")
+            print(f"{self.character.name} is next to the target. Switching to CloseState.")
             self.character.set_state(CloseState(self.character))
 
     def _target_is_far(self, player):

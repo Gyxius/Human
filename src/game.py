@@ -35,7 +35,7 @@ class Game:
     def run(self):
         running = True
         while running:
-            pygame.time.delay(30)
+            pygame.time.delay(60)
             
             for event in pygame.event.get():
                 if event.type == QUIT:

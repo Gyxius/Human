@@ -49,7 +49,7 @@ class Player(Characters):
             dx = 1
 
         # Use the delta values directly for collision check
-        if not collision_manager.grid_colliding_circle(self, self.dx, self.dy, grid):
+        if not collision_manager.grid_colliding_circle(self, self.x + dx, self.y + dy, grid):
             self.x = dx + self.x
             self.y = dy +  self.y
             self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
