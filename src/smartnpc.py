@@ -3,19 +3,15 @@ from weapons import *
 from reward import *
 
 class SmartNPC(Characters):
-	def __init__(self, surface, clan, radius=RADIUS_SIZE, speed=2, vision=200, damage=10):
+	def __init__(self, surface, clan, q_table, radius=RADIUS_SIZE, speed=2, vision=200, damage=10):
 		self.xPosition = 0
 		self.yPosition = 0
 		self.radius = radius
 		self.clan = clan
 		if self.clan == "RED":
 			self.color = RED
-			# self.xPosition = 20
-			# self.yPosition = 20
 		elif self.clan == "BLUE":
 			self.color = BLUE
-			# self.xPosition = 50
-			# self.yPosition = 50
 		sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
 		super().__init__(sprite, "npc")
 		self.state = IdleState(self)
@@ -61,11 +57,16 @@ class SmartNPC(Characters):
 			enemy_distance = ((enemy_dx ** 2 + enemy_dy ** 2) ** 0.5)
 
 		# Bucket sizes for dx/dy = 10, health = 10, distances normalized
-		bucket_size = 10
+		bucket_size = 100
+		# state = (
+		# 	bucketize(self.health, bucket_size),  # Self health bucket (0-10)
+		# 	bucketize(ally_dx, bucket_size), bucketize(ally_dy, bucket_size), bucketize(ally_health, bucket_size), bucketize(ally_distance / MAX_DISTANCE * 10, 1),
+		# 	bucketize(enemy_dx, bucket_size), bucketize(enemy_dy, bucket_size), bucketize(enemy_health, bucket_size), bucketize(enemy_distance / MAX_DISTANCE * 10, 1)
+		# )
 		state = (
 			bucketize(self.health, bucket_size),  # Self health bucket (0-10)
-			bucketize(ally_dx, bucket_size), bucketize(ally_dy, bucket_size), bucketize(ally_health, bucket_size), bucketize(ally_distance / MAX_DISTANCE * 10, 1),
-			bucketize(enemy_dx, bucket_size), bucketize(enemy_dy, bucket_size), bucketize(enemy_health, bucket_size), bucketize(enemy_distance / MAX_DISTANCE * 10, 1)
+			bucketize(ally_dx, bucket_size), bucketize(ally_dy, bucket_size), 
+			bucketize(enemy_dx, bucket_size), bucketize(enemy_dy, bucket_size),
 		)
 
 		return state
@@ -159,15 +160,11 @@ class SmartNPC(Characters):
 			self.xPosition += dx
 			self.yPosition += dy
 			if collision_manager.is_colliding_circle(self, dx, dy):
-				# self.xPosition += dx
-				# self.yPosition += dy
 				# ❌ Can't move, hit something
 				reward = -10  # Penalize for bad move
 				# print(f"Collision detected at ({self.xPosition}, {self.yPosition}) trying to move {action}")
 			else:
 				# ✅ Move allowed
-				# self.xPosition += dx
-				# self.yPosition += dy
 				reward = 0  # Normal move cost
 				# print(f"Moved {action} to ({self.xPosition}, {self.yPosition})")
 
@@ -194,8 +191,8 @@ class SmartNPC(Characters):
 
 		self.total_reward += reward
 
-		if not self.alive:
-			done = True
+		# if not self.alive:
+		# 	done = True
 
 		return reward, done
 

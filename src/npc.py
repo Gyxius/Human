@@ -3,7 +3,7 @@ from weapons import *
 from reward import *
 
 class NPC(Characters):
-  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 1, vision = 200, damage = 10):
+  def __init__(self, surface, clan, q_table, radius = RADIUS_SIZE, speed = 1, vision = 200, damage = 10):
     # self.xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
     # self.yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
     self.xPosition = 0
@@ -29,6 +29,7 @@ class NPC(Characters):
     self.wood = 0
     self.attack_reward = 0
     self.rewards = Reward()
+    self.q_table = q_table
 
   def spawn(self, collision_manager):
     xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
