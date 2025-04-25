@@ -141,7 +141,10 @@ class Game:
             saved_q_tables = pickle.load(f) # Load the Q-tables filled during training 
 
         # Reset the game and assign Q-tables to fresh NPCs
-        self.reset_game()  # Ensures NPCs are recreated
+        # self.reset_game()  # Ensures NPCs are recreated
+        self.reset_npcs()
+        self.reset_managers()
+        self.spawn_chacaters()
 
         for npc, q_table in zip(self.npcs, saved_q_tables):
             npc.q_table = q_table
@@ -186,7 +189,10 @@ class Game:
             for npc in self.npcs:
                 state = npc.get_state(self.npcs)
                 if state not in npc.q_table:
+                    # If the state is new then we pick an action at random
+                    action_index = random.randint(0, len(npc.actions) - 1)
                     npc.q_table[state] = [0] * len(npc.actions)
+                    npc.q_table[state][action_index] = 5
                 
                 print(f"State: {state}, Q-values: {npc.q_table[state]}")
                 
