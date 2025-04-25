@@ -3,7 +3,7 @@ from weapons import *
 from reward import *
 
 class SmartNPC(Characters):
-	def __init__(self, surface, clan, radius=RADIUS_SIZE, speed=1, vision=200, damage=10):
+	def __init__(self, surface, clan, radius=RADIUS_SIZE, speed=2, vision=200, damage=10):
 		self.xPosition = 0
 		self.yPosition = 0
 		self.radius = radius
@@ -38,9 +38,6 @@ class SmartNPC(Characters):
 		self.alpha = 0.1    # Learning rate
 		self.gamma = 0.9    # Discount factor
 
-
-
-
 	def get_state(self, npc_list):
 		def bucketize(value, bucket_size):
 			return int(value // bucket_size)
@@ -64,7 +61,7 @@ class SmartNPC(Characters):
 			enemy_distance = ((enemy_dx ** 2 + enemy_dy ** 2) ** 0.5)
 
 		# Bucket sizes for dx/dy = 10, health = 10, distances normalized
-		bucket_size = 40
+		bucket_size = 10
 		state = (
 			bucketize(self.health, bucket_size),  # Self health bucket (0-10)
 			bucketize(ally_dx, bucket_size), bucketize(ally_dy, bucket_size), bucketize(ally_health, bucket_size), bucketize(ally_distance / MAX_DISTANCE * 10, 1),
@@ -91,7 +88,6 @@ class SmartNPC(Characters):
 			yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
 		self.xPosition = xPosition
 		self.yPosition = yPosition
-
 
 	def draw(self, surface):
 		if self.alive:
@@ -148,32 +144,51 @@ class SmartNPC(Characters):
 		reward = 0
 		done = False
 
+		dx, dy = 0, 0
 		if action == 'MOVE_UP':
-			self.yPosition -= self.speed
-			reward = -2
+			dy -= self.speed
 		elif action == 'MOVE_DOWN':
-			self.yPosition += self.speed
-			reward = -2
+			dy += self.speed
 		elif action == 'MOVE_LEFT':
-			self.xPosition -= self.speed
-			reward = -2 
+			dx -= self.speed
 		elif action == 'MOVE_RIGHT':
-			self.xPosition += self.speed
-			reward = -2 
+			dx += self.speed
+
+		# Collision Check!
+		if action in ['MOVE_UP', 'MOVE_DOWN', 'MOVE_LEFT', 'MOVE_RIGHT']:
+			self.xPosition += dx
+			self.yPosition += dy
+			if collision_manager.is_colliding_circle(self, dx, dy):
+				# self.xPosition += dx
+				# self.yPosition += dy
+				# ❌ Can't move, hit something
+				reward = -10  # Penalize for bad move
+				# print(f"Collision detected at ({self.xPosition}, {self.yPosition}) trying to move {action}")
+			else:
+				# ✅ Move allowed
+				# self.xPosition += dx
+				# self.yPosition += dy
+				reward = 0  # Normal move cost
+				# print(f"Moved {action} to ({self.xPosition}, {self.yPosition})")
+
+		
+
 		elif action == 'ATTACK_PLAYER':
+			# Same as before: attack logic
 			nearest_enemy = self.get_nearest_npcs(npcs)
-			if nearest_enemy and self._target_is_close(nearest_enemy):
+			if nearest_enemy and self._target_is_close(nearest_enemy) and not collision_manager.is_colliding_circle(self, dx, dy):
 				self.target = [nearest_enemy]
 				self.attack_target(collision_manager)
 				nearest_enemy.take_damage(self.weapon.damage, collision_manager.npcs, self)
-				reward = 2000  # Reward if healthy
+				reward = 200
 			else:
 				reward = -5
-		elif action == 'IDLE':
-			self.health = min(100, self.health + 1)  # Recover health
-			reward = -2
 
-		# Clamp position to stay in screen
+		elif action == 'IDLE':
+			self.health = min(100, self.health + 1)
+			reward = -10  # Bigger penalty for doing nothing
+
+		# Keep NPC on screen
 		self.xPosition = max(RADIUS_SIZE, min(WIDTH - RADIUS_SIZE, self.xPosition))
 		self.yPosition = max(RADIUS_SIZE, min(HEIGHT - RADIUS_SIZE, self.yPosition))
 
@@ -188,7 +203,7 @@ class SmartNPC(Characters):
 		dx = player.xPosition - self.xPosition
 		dy = player.yPosition - self.yPosition
 		distance = (dx ** 2 + dy ** 2) ** 0.5
-		return distance <= 2.2 * RADIUS_SIZE
+		return distance <= 3 * RADIUS_SIZE
 
 	def is_in_state(self, state_class):
 		return isinstance(self.state, state_class)
@@ -201,13 +216,16 @@ class SmartNPC(Characters):
 		self.target = []
 		return self.get_state(collision_manager.npcs)
 
-	def choose_action(self, state):
+	def choose_action(self, state, collision_manager):
+		""" Returns the best action to take """
 		if random.uniform(0, 1) < self.epsilon:
-			return random.choice(self.actions)
+			action = random.choice(self.actions)
 		else:
 			if state not in self.q_table:
 				self.q_table[state] = [0] * len(self.actions)
-			return self.actions[self.q_table[state].index(max(self.q_table[state]))]
+			action = self.actions[self.q_table[state].index(max(self.q_table[state]))]
+
+		return action
 
 	def update_q_table(self, state, action, reward, next_state, training_mode=False):
 		if not training_mode:

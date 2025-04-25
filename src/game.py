@@ -18,8 +18,10 @@ class Game:
         pygame.display.set_caption(TITLE)
 
         # Create NPCs
-        self.enemies = [SmartNPC(self.surface, speed=1, clan="RED") for _ in range(4)]
-        self.allies = [SmartNPC(self.surface, speed=1, clan="BLUE") for _ in range(4)]
+        self.enemies_number = 1
+        self.allies_number = 1
+        self.enemies = [SmartNPC(self.surface, clan="RED") for _ in range(self.enemies_number)]
+        self.allies = [SmartNPC(self.surface, clan="BLUE") for _ in range(self.allies_number)]
 
         self.player = Player(self.surface, "Josh")
         self.npcs = self.enemies + self.allies
@@ -33,8 +35,8 @@ class Game:
 
     def reset_npcs(self):
         # Recreate NPC objects
-        self.enemies = [SmartNPC(self.surface, speed=5, clan="RED") for _ in range(4)]
-        self.allies = [SmartNPC(self.surface, speed=5, clan="BLUE") for _ in range(4)]
+        self.enemies = [SmartNPC(self.surface, clan="RED") for _ in range(self.enemies_number)]
+        self.allies = [SmartNPC(self.surface, clan="BLUE") for _ in range(self.allies_number)]
         # Reinitialize npcs list
         self.npcs = self.enemies + self.allies
 
@@ -43,7 +45,7 @@ class Game:
         self.collision_manager = CollisionManager(self.player, self.npcs)
         self.target_manager = TargetManager(self.npcs, self.player)
 
-    def spawn_chacaters(self):
+    def spawn_characters(self):
         # Respawn characters
         for npc in self.npcs:
             npc.spawn(self.collision_manager)
@@ -69,9 +71,7 @@ class Game:
             npc.q_table = q_table
 
         self.reset_managers()
-        self.spawn_chacaters()
-
-
+        self.spawn_characters()
 
     def run_episode(self, episode, max_steps=2000, render=False):
         self.reset_game()
@@ -82,7 +82,6 @@ class Game:
         while running and not done and step_count < max_steps:
             step_count += 1
 
-            # Skip FPS limit for faster training
             if render:
                 self.clock.tick(FPS)
 
@@ -95,7 +94,7 @@ class Game:
 
             for npc in self.npcs:
                 state = npc.get_state(self.npcs)
-                action = npc.choose_action(state)
+                action = npc.choose_action(state, self.collision_manager)
                 reward, done = npc.act(action, self.collision_manager, self.npcs)
                 next_state = npc.get_state(self.npcs)
                 npc.update_q_table(state, action, reward, next_state, training_mode=True)
@@ -113,7 +112,6 @@ class Game:
 
     def train(self, episodes=1000, max_steps=1000):
         for ep in range(episodes):
-            render = (ep % 100 == 0)  # Render only every 100 episodes
             print(f"=== Episode {ep + 1} ===")
             self.run_episode(ep, max_steps=max_steps, render=False)
         pygame.quit()
@@ -135,7 +133,6 @@ class Game:
             self.run_episode(ep, max_steps=max_steps, render=True)
         pygame.quit()
 
-
     def play(self):
         with open('q_table.pkl', 'rb') as f:
             saved_q_tables = pickle.load(f) # Load the Q-tables filled during training 
@@ -144,7 +141,7 @@ class Game:
         # self.reset_game()  # Ensures NPCs are recreated
         self.reset_npcs()
         self.reset_managers()
-        self.spawn_chacaters()
+        self.spawn_characters()
 
         for npc, q_table in zip(self.npcs, saved_q_tables):
             npc.q_table = q_table
@@ -192,8 +189,6 @@ class Game:
                     # If the state is new then we pick an action at random
                     action_index = random.randint(0, len(npc.actions) - 1)
                     npc.q_table[state] = [0] * len(npc.actions)
-                    npc.q_table[state][action_index] = 5
-                
                 
                 print(f"State: {state}, Q-values: {npc.q_table[state]}")
                 
