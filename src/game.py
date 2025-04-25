@@ -20,8 +20,8 @@ class Game:
 
 
         # Create NPCs
-        self.enemies_number = 2
-        self.allies_number = 2
+        self.enemies_number = 1
+        self.allies_number = 1
         self.enemies = [SmartNPC(self.surface, clan="RED", q_table=self.shared_q_table) for _ in range(self.enemies_number)]
         self.allies = [SmartNPC(self.surface, clan="BLUE", q_table=self.shared_q_table) for _ in range(self.allies_number)]
 
@@ -147,7 +147,7 @@ class Game:
 
         running = True
         while running:
-            # pygame.time.delay(30)
+            pygame.time.delay(60)
 
             for event in pygame.event.get():
                 if event.type == QUIT:
