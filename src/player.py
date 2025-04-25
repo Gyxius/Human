@@ -36,23 +36,23 @@ class Player(Characters):
                 self.health += self.regeneration_time
             self.health_timer = 100  # Reset timer
 
-    def move(self, collision_manager):
-        self.dx = self.dy = 0  # reset every frame
+    def move(self, collision_manager, grid):
+        dx = dy = 0  # reset every frame
 
         if self.moving["up"]:
-            self.dy = -self.speed
+            dy = -1
         if self.moving["down"]:
-            self.dy = self.speed
+            dy =  1
         if self.moving["left"]:
-            self.dx = -self.speed
+            dx = - 1
         if self.moving["right"]:
-            self.dx = self.speed
+            dx = 1
 
         # Use the delta values directly for collision check
-        if not collision_manager.is_colliding_circle(self, self.dx, self.dy):
-            self.xPosition += self.dx
-            self.yPosition += self.dy
-
+        if not collision_manager.grid_colliding_circle(self, self.dx, self.dy, grid):
+            self.x = dx + self.x
+            self.y = dy +  self.y
+            self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
 
     def draw(self, surface):
         # Draw the sprite
@@ -64,9 +64,9 @@ class Player(Characters):
         self.healthbar.draw(surface)
         # self.rewards.draw(surface)
 
-    def update(self, collision_manager):
+    def update(self, collision_manager, grid):
         # Move player based on held keys
-        self.move(collision_manager)
+        self.move(collision_manager, grid)
         self.weapon.update() 
         self.attack_target(collision_manager)
         self.regenerate_health()

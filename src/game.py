@@ -75,7 +75,7 @@ class Game:
                 # state = npc.get_state(self.npcs)
                 npc.update(self.characters, self.collision_manager)
 
-            self.player.update(self.collision_manager)
+            self.player.update(self.collision_manager, self.grid)
 
             self.surface.fill(GREEN)
 
