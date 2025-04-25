@@ -194,6 +194,7 @@ class Game:
                     npc.q_table[state] = [0] * len(npc.actions)
                     npc.q_table[state][action_index] = 5
                 
+                
                 print(f"State: {state}, Q-values: {npc.q_table[state]}")
                 
                 if random.uniform(0, 1) < npc.epsilon:
@@ -202,9 +203,6 @@ class Game:
                     action_index = npc.q_table[state].index(max(npc.q_table[state]))
                     action = npc.actions[action_index]
                 print(f"{npc.clan} NPC chooses action: {action}")
-
-                # Optional: print action for debugging
-                # print(f"{npc.clan} NPC chooses action: {action}")
 
                 npc.act(action, self.collision_manager, self.npcs)
 
