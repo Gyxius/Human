@@ -32,41 +32,44 @@ class Game:
         self.characters =  self.npcs + [self.player]
         [character.spawn(self.collision_manager, self.grid) for character in self.characters] # Spawn the characters 
 
+    def player_move(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                self.player.moving["up"] = True
+            elif event.key == pygame.K_DOWN:
+                self.player.moving["down"] = True
+            elif event.key == pygame.K_LEFT:
+                self.player.moving["left"] = True
+            elif event.key == pygame.K_RIGHT:
+                self.player.moving["right"] = True
+            elif event.key == pygame.K_SPACE:
+                self.player.moving["space"] = True
+
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_UP:
+                self.player.moving["up"] = False
+            elif event.key == pygame.K_DOWN:
+                self.player.moving["down"] = False
+            elif event.key == pygame.K_LEFT:
+                self.player.moving["left"] = False
+            elif event.key == pygame.K_RIGHT:
+                self.player.moving["right"] = False
+            elif event.key == pygame.K_SPACE:
+                self.player.moving["space"] = False
+                pass
+
     def run(self):
         running = True
         while running:
-            pygame.time.delay(60)
+            # pygame.time.delay(60)
             
             for event in pygame.event.get():
                 if event.type == QUIT:
                     running = False
 
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        self.player.moving["up"] = True
-                    elif event.key == pygame.K_DOWN:
-                        self.player.moving["down"] = True
-                    elif event.key == pygame.K_LEFT:
-                        self.player.moving["left"] = True
-                    elif event.key == pygame.K_RIGHT:
-                        self.player.moving["right"] = True
-                    elif event.key == pygame.K_SPACE:
-                        self.player.moving["space"] = True
+                self.player_move(event)
 
-                elif event.type == pygame.KEYUP:
-                    if event.key == pygame.K_UP:
-                        self.player.moving["up"] = False
-                    elif event.key == pygame.K_DOWN:
-                        self.player.moving["down"] = False
-                    elif event.key == pygame.K_LEFT:
-                        self.player.moving["left"] = False
-                    elif event.key == pygame.K_RIGHT:
-                        self.player.moving["right"] = False
-                    elif event.key == pygame.K_SPACE:
-                        self.player.moving["space"] = False
-                        pass
-
-            self.clock.tick(FPS)
+            # self.clock.tick(FPS)
 
             self.npcs = [npc for npc in self.npcs if npc.health > 0]
             
@@ -79,7 +82,7 @@ class Game:
 
             self.surface.fill(GREEN)
 
-            self.grid.draw_grid(self.surface)
+            # self.grid.draw_grid(self.surface)
             # Draw all NPCs
             for npc in self.npcs:
                 npc.draw(self.surface)

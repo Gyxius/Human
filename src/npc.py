@@ -3,7 +3,7 @@ from weapons import *
 from reward import *
 
 class NPC(Characters):
-  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 1, vision = 200, damage = 10):
+  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 300, vision = 200, damage = 10):
     # self.xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
     # self.yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
     self.xPosition = 0
@@ -19,7 +19,8 @@ class NPC(Characters):
     sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
     super().__init__(sprite, "npc")
     self.state = IdleState(self)
-    self.speed = speed
+    self.movement_speed = speed
+    self.last_move_time = pygame.time.get_ticks()
     self.damage = damage
     self.vision = vision # How far they can see
     self.dx = 0
@@ -48,7 +49,6 @@ class NPC(Characters):
       self.healthbar.draw(surface)
       self.rewards.draw(self.xPosition, self.yPosition, surface) 
 
-
   def update(self, characters, collision_manager):
     if self.alive:
       if self.target and not self.target[0].alive:
@@ -56,7 +56,10 @@ class NPC(Characters):
         self.target = []
         self.set_state(IdleState(self))
 
+
       self.state.move(characters, collision_manager)  # Delegate behavior to the current state
+
+
       if self.is_in_state(CloseState):
         self.weapon.update() 
         self.attack_target(collision_manager)
@@ -106,7 +109,6 @@ class NPC(Characters):
       target = self.target[0]
       target.take_damage(self.weapon.damage, collision_manager.npcs, self)  # Make NPC take damage!
       self.rewards.reward(10 + 0.5*(100 - self.health), "attacked target")
-
 
   def is_in_state(self, state_class):
     return isinstance(self.state, state_class)

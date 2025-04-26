@@ -3,6 +3,14 @@ import random
 from settings import *
 from collisionManager import *
 
+def movement_control(func):
+    def wrapper(self, *args, **kwargs):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.character.last_move_time >= self.character.movement_speed: 
+            func(self, *args, **kwargs)
+            self.character.last_move_time = current_time 
+    return wrapper
+
 class NpcState(ABC):
     def __init__(self, character):
         self.character = character  # The NPC using this state (enemy, ally, etc.)
@@ -50,6 +58,7 @@ class IdleState(NpcState):
         distance = (dx**2 + dy**2) ** 0.5
         return distance < self.character.vision  # Detection range
     
+    @movement_control
     def _move_randomly(self, collision_manager):
         # Check if it's time to pick a new action (move or idle)
         if self.move_timer <= 0:
@@ -83,6 +92,7 @@ class IdleState(NpcState):
 
 
 class FollowingState(NpcState):
+    @movement_control
     def move(self, characters, collision_manager):
         # Now follows the target
         dx = 0
@@ -128,6 +138,7 @@ class FollowingState(NpcState):
         return distance <= 2.2*RADIUS_SIZE # Quite close
 
 class CloseState(NpcState):
+    @movement_control
     def move(self, characters, collision_manager):
         target = self.character.target[0]
         if self._target_is_far(target):

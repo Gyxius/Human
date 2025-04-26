@@ -9,7 +9,7 @@ class Player(Characters):
         self.x = 10
         self.y = 0
         self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
-        self.speed = 2
+        self.movement_speed = 200 # Milliseconds between each movement
         self.moving = {"up": False, "down": False, "left": False, "right": False, "space": False}
         self.color = LIGHT_GREEN
         self.sprite = Sprites.Circle(surface, color = self.color, posx = self.xPosition, posy = self.yPosition)
@@ -25,6 +25,15 @@ class Player(Characters):
         self.damage = 30
         self.weapon = NoWeapon(self)
         self.healthbar = Healthbar(self)
+        self.last_move_time = pygame.time.get_ticks()
+
+    def movement_control(func):
+        def wrapper(self, *args, **kwargs):
+            current_time = pygame.time.get_ticks()
+            if current_time - self.last_move_time >= self.movement_speed: 
+                func(self, *args, **kwargs)
+                self.last_move_time = current_time 
+        return wrapper
 
     def regenerate_health(self):
         # Decrease the health timer
@@ -36,9 +45,9 @@ class Player(Characters):
                 self.health += self.regeneration_time
             self.health_timer = 100  # Reset timer
 
+    @movement_control
     def move(self, collision_manager, grid):
-        dx = dy = 0  # reset every frame
-
+        dx = dy = 0 
         if self.moving["up"]:
             dy = -1
         if self.moving["down"]:
@@ -47,7 +56,6 @@ class Player(Characters):
             dx = - 1
         if self.moving["right"]:
             dx = 1
-
         # Use the delta values directly for collision check
         if not collision_manager.grid_colliding_circle(self, self.x + dx, self.y + dy, grid):
             self.x = dx + self.x
@@ -65,7 +73,6 @@ class Player(Characters):
         # self.rewards.draw(surface)
 
     def update(self, collision_manager, grid):
-        # Move player based on held keys
         self.move(collision_manager, grid)
         self.weapon.update() 
         self.attack_target(collision_manager)
