@@ -57,7 +57,6 @@ class Player(Characters):
         if self.moving["right"]:
             dx = 1
         
-
         # if not collision_manager.grid_colliding_circle(self, self.x + dx, self.y + dy, grid):
         if 0 <= self.y + dy < collision_manager.grid.grid_height and 0 <= self.x + dx < collision_manager.grid.grid_width:
             if collision_manager.grid.grid[self.y + dy][self.x + dx] == ' ':

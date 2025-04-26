@@ -19,19 +19,18 @@ class Weapons:
     def draw(self, surface):
         """Draws the attack area for debugging (optional)."""
         if self.active and self.attack_rect:
-            pygame.draw.rect(surface, WHITE, self.attack_rect, 1)
+            pygame.draw.rect(surface, LIGHT_GREEN, self.attack_rect, 1)
 
     def deactivate(self):
         """Disables attack after a short time."""
         self.active = False
-
 
 class NoWeapon(Weapons):
     """A melee weapon that swings in front of the player."""
     def __init__(self, owner):
         self.attack_duration = owner.attack_speed # 3 seconds before another attack
         self.attack_end_time = 0 # time when attack should stop
-        super().__init__(owner, damage=owner.damage, attack_size=(RADIUS_SIZE * 2, RADIUS_SIZE * 2))
+        super().__init__(owner, damage=owner.damage, attack_size=(BLOCK_SIZE, BLOCK_SIZE))
 
     def attack(self, character):
         """Triggers  attack in front of the player."""
@@ -43,28 +42,28 @@ class NoWeapon(Weapons):
         
         self.active = True
         self.attack_end_time = current_time + self.attack_duration
-        x, y = self.owner.xPosition, self.owner.yPosition
 
         if character.player:
             attack_offsets = {
-                ("right", "up"): (RADIUS_SIZE, -3 * RADIUS_SIZE),   # Top-right
-                ("right", "down"): (RADIUS_SIZE, RADIUS_SIZE),      # Bottom-right
-                ("left", "up"): (-3 * RADIUS_SIZE, -3 * RADIUS_SIZE), # Top-left
-                ("left", "down"): (-3 * RADIUS_SIZE, RADIUS_SIZE),  # Bottom-left
-                ("right",): (RADIUS_SIZE, -RADIUS_SIZE),           # Right
-                ("left",): (-3 * RADIUS_SIZE, -RADIUS_SIZE),       # Left
-                ("up",): (-RADIUS_SIZE, -3 * RADIUS_SIZE),         # Up
-                ("down",): (-RADIUS_SIZE, RADIUS_SIZE),           # Down
+                ("right", "up"): (1,-1),   # Top-right
+                ("right", "down"): (1,1),      # Bottom-right
+                ("left", "up"): (-1,-1), # Top-left
+                ("left", "down"): (-1,1),  # Bottom-left
+                ("right",): (1,0),           # Right
+                ("left",): (-1,0),       # Left
+                ("up",): (0,-1),         # Up
+                ("down",): (0,1),           # Down
             }
-
             directions = tuple(dir for dir in ["right", "left", "up", "down"] if self.owner.moving[dir])
-
+            
+            x, y = self.owner.x, self.owner.y
             if directions in attack_offsets:
                 dx, dy = attack_offsets[directions]
-                self.attack_rect = pygame.Rect(x + dx, y + dy, *self.attack_size)
+                x_rect = (x + dx)*BLOCK_SIZE
+                y_rect = (y + dy)*BLOCK_SIZE
+                self.attack_rect = pygame.Rect(x_rect, y_rect, *self.attack_size)
             else:
                 self.attack_rect = None  # Prevent drawing empty attack
-        
         else:
             pass
 
