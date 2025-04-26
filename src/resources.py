@@ -39,6 +39,10 @@ class Resources:
     def draw(self, surface):
         self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition)
 
+    def update(self, collision_manager):
+        if self.is_depleted():
+            collision_manager.grid.grid[self.y][self.x] = ' '
+
 
 if __name__ == '__main__':
     # Example usage

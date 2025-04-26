@@ -7,7 +7,7 @@ from smartnpc import *
 from npcFactory import *
 from player import *
 from grid import *
-from ressources import *
+from resources import *
 
 class Game:
     def __init__(self):
@@ -33,6 +33,8 @@ class Game:
         self.target_manager = TargetManager(self.npcs, self.player)
         self.characters =  self.npcs + [self.player]
         self.tree.spawn(self.collision_manager, self.grid)
+        self.resources = [self.tree]
+        [resource.spawn(self.collision_manager, self.grid) for resource in self.resources]
         [character.spawn(self.collision_manager, self.grid) for character in self.characters] # Spawn the characters 
 
     def player_move(self, event):
@@ -75,7 +77,10 @@ class Game:
             # self.clock.tick(FPS)
 
             self.npcs = [npc for npc in self.npcs if npc.health > 0]
-            
+            self.resources = [resource for resource in self.resources if resource.quantity > 0]
+            for resource in self.resources:
+                resource.update(self.collision_manager)
+                
             for npc in self.npcs:
                 npc.update(self.characters, self.collision_manager)
 
@@ -86,7 +91,9 @@ class Game:
             # self.grid.draw_grid(self.surface)
             # self.grid.print_grid()
             # Draw all the resources
-            self.tree.draw(self.surface)
+
+            for resource in self.resources:
+                resource.draw(self.surface)
             # Draw all NPCs
             for npc in self.npcs:
                 npc.draw(self.surface)
