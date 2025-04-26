@@ -96,7 +96,7 @@ class Game:
             self.surface.fill(GREEN)
 
             self.grid.draw_grid(self.surface)
-            self.grid.print_grid()
+            # self.grid.print_grid()
             # Draw all NPCs
             for npc in self.npcs:
                 npc.draw(self.surface)

@@ -117,17 +117,21 @@ class FollowingState(NpcState):
             print(f"{self.character.name} is next to the target. Switching to CloseState.")
             self.character.set_state(CloseState(self.character))
 
-    def _target_is_far(self, player):
-        dx = player.xPosition - self.character.xPosition
-        dy = player.yPosition - self.character.yPosition
-        distance = (dx**2 + dy**2) ** 0.5
-        return distance > self.character.vision  # Lose sight range
+    def _target_is_far(self, target, distance = 3):
+        """ Check If the enemy is x case around using chebyshev distance """
+        dx = target.x - self.character.x
+        dy = target.y - self.character.y
+        if max(abs(dx), abs(dy)) > distance:
+            return True
+        return False
     
-    def _target_is_close(self, player):
-        dx = player.xPosition - self.character.xPosition
-        dy = player.yPosition - self.character.yPosition
-        distance = (dx**2 + dy**2) ** 0.5
-        return distance <= 2.2*RADIUS_SIZE # Quite close
+    def _target_is_close(self, target):
+        """ Check If the enemy is one case around using chebyshev distance """
+        dx = target.x - self.character.x
+        dy = target.y - self.character.y
+        if max(abs(dx), abs(dy)) > 0:
+            return True
+        return False
 
 class CloseState(NpcState):
     def move(self, characters, collision_manager):
@@ -136,11 +140,13 @@ class CloseState(NpcState):
             # print(f"{self.character.name} target is far. Switching to Following State.")
             self.character.set_state(FollowingState(self.character))
 
-    def _target_is_far(self, target):
-        dx = target.xPosition - self.character.xPosition
-        dy = target.yPosition - self.character.yPosition
-        distance = (dx**2 + dy**2) ** 0.5
-        return distance > 2.2*RADIUS_SIZE 
+    def _target_is_far(self, target, distance = 1):
+        """ Check If the enemy is x case around using chebyshev distance """
+        dx = target.x - self.character.x
+        dy = target.y - self.character.y
+        if max(abs(dx), abs(dy)) > distance:
+            return True
+        return False
 
 
 # In States Class

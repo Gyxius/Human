@@ -95,7 +95,6 @@ class NPC(Characters):
             print(f"NPC {self.id} has died!")
             if self in npc_list:
                 npc_list.remove(self)
-
             # Cleanup targets for others
             for npc in npc_list:
                 if npc.target and npc.target[0] == self:
