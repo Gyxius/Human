@@ -56,11 +56,16 @@ class Player(Characters):
             dx = - 1
         if self.moving["right"]:
             dx = 1
-        # Use the delta values directly for collision check
-        if not collision_manager.grid_colliding_circle(self, self.x + dx, self.y + dy, grid):
-            self.x = dx + self.x
-            self.y = dy +  self.y
-            self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
+        
+
+        # if not collision_manager.grid_colliding_circle(self, self.x + dx, self.y + dy, grid):
+        if 0 <= self.y + dy < collision_manager.grid.grid_height and 0 <= self.x + dx < collision_manager.grid.grid_width:
+            if collision_manager.grid.grid[self.y + dy][self.x + dx] == ' ':
+                collision_manager.grid.grid[self.y][self.x] = ' '
+                self.x = dx + self.x
+                self.y = dy +  self.y
+                self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
+                collision_manager.grid.grid[self.y][self.x] = 'C'
 
     def draw(self, surface):
         # Draw the sprite

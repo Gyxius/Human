@@ -75,7 +75,7 @@ class Game:
             
             # Update all NPCs
             # reserved_tiles = set()
-            self.grid.empty_grid(self.characters)
+            # self.grid.empty_grid(self.characters)
             for npc in self.npcs:
                 # intended_x = npc.x
                 # intended_y = npc.y
@@ -92,11 +92,11 @@ class Game:
                 #         reserved_tiles.add(new_pos)
 
             self.player.update(self.collision_manager, self.grid)
-            self.grid.update_grid(self.characters)
+            # self.grid.update_grid(self.characters)
             self.surface.fill(GREEN)
 
             self.grid.draw_grid(self.surface)
-            # self.grid.print_grid()
+            self.grid.print_grid()
             # Draw all NPCs
             for npc in self.npcs:
                 npc.draw(self.surface)
