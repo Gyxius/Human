@@ -4,8 +4,6 @@ from reward import *
 
 class NPC(Characters):
   def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 300, vision = 200, damage = 10):
-    # self.xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
-    # self.yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
     self.xPosition = 0
     self.yPosition = 0
     self.x = 0
@@ -33,6 +31,14 @@ class NPC(Characters):
     self.attack_reward = 0
     self.rewards = Reward()
 
+  def movement_control(func):
+    def wrapper(self, *args, **kwargs):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_move_time >= self.movement_speed: 
+            func(self, *args, **kwargs)
+            self.last_move_time = current_time 
+    return wrapper
+  
   def spawn(self, collision_manager, grid):
     xPosition = random.randint(0, grid.grid_width - 1)
     yPosition = random.randint(0, grid.grid_height - 1 )
@@ -49,17 +55,17 @@ class NPC(Characters):
       self.healthbar.draw(surface)
       self.rewards.draw(self.xPosition, self.yPosition, surface) 
 
+  @movement_control
+  def move(self, characters, collision_manager):
+     self.state.move(characters, collision_manager)  # Delegate behavior to the current state
+  
   def update(self, characters, collision_manager):
     if self.alive:
       if self.target and not self.target[0].alive:
         print(f"NPC {self.id} target is dead. Switching to IdleState.")
         self.target = []
         self.set_state(IdleState(self))
-
-
-      self.state.move(characters, collision_manager)  # Delegate behavior to the current state
-
-
+      self.move(characters, collision_manager) 
       if self.is_in_state(CloseState):
         self.weapon.update() 
         self.attack_target(collision_manager)

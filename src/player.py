@@ -6,7 +6,7 @@ from settings import *
 class Player(Characters):
     def __init__(self, surface, name, grid):
         
-        self.x = 10
+        self.x = 0
         self.y = 0
         self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
         self.movement_speed = 200 # Milliseconds between each movement
@@ -102,10 +102,11 @@ class Player(Characters):
           print("Game over")
 
     def spawn(self, collision_manager, grid):
-        xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
-        yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
-        while(collision_manager.is_colliding_circle(self, xPosition, yPosition)):
-            xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
-            yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
+        xPosition = random.randint(0, grid.grid_width - 1)
+        yPosition = random.randint(0, grid.grid_height - 1 )
+        while(collision_manager.grid_colliding_circle(self, xPosition, yPosition, grid)):
+            xPosition = random.randint(0, grid.grid_width - 1)
+            yPosition = random.randint(0, grid.grid_height - 1 )
 
-        self.xPosition, self.yPosition = grid.grid_to_pixel(10, 0)
+        self.x, self.y = xPosition, yPosition
+        self.xPosition, self.yPosition = grid.grid_to_pixel(xPosition, yPosition)

@@ -74,15 +74,29 @@ class Game:
             self.npcs = [npc for npc in self.npcs if npc.health > 0]
             
             # Update all NPCs
+            # reserved_tiles = set()
+            self.grid.empty_grid(self.characters)
             for npc in self.npcs:
+                # intended_x = npc.x
+                # intended_y = npc.y
                 # state = npc.get_state(self.npcs)
                 npc.update(self.characters, self.collision_manager)
+                    # After update, check if moved:
+                # new_pos = (npc.x, npc.y)
+                # if new_pos != (intended_x, intended_y):
+                #     if new_pos in reserved_tiles:
+                #         # Undo move if tile is taken
+                #         npc.x, npc.y = intended_x, intended_y
+                #         npc.xPosition, npc.yPosition = self.grid.grid_to_pixel(npc.x, npc.y)
+                #     else:
+                #         reserved_tiles.add(new_pos)
 
             self.player.update(self.collision_manager, self.grid)
-
+            self.grid.update_grid(self.characters)
             self.surface.fill(GREEN)
 
-            # self.grid.draw_grid(self.surface)
+            self.grid.draw_grid(self.surface)
+            # self.grid.print_grid()
             # Draw all NPCs
             for npc in self.npcs:
                 npc.draw(self.surface)
