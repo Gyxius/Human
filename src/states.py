@@ -74,10 +74,12 @@ class IdleState(NpcState):
             if 0 <= self.character.y + dy < collision_manager.grid.grid_height and 0 <= self.character.x + dx < collision_manager.grid.grid_width:
                 if collision_manager.grid.grid[self.character.y + dy][self.character.x + dx] == ' ':
                     collision_manager.grid.grid[self.character.y][self.character.x] = ' '
+                    collision_manager.object_grid.grid[self.character.y][self.character.x] = None
                     self.character.x = dx + self.character.x
                     self.character.y = dy +  self.character.y
                     self.character.xPosition, self.character.yPosition = collision_manager.grid.grid_to_pixel(self.character.x, self.character.y)
-                    collision_manager.grid.grid[self.character.y][self.character.x] = 'C'
+                    collision_manager.grid.grid[self.character.y][self.character.x] = self.character.grid_character
+                    collision_manager.object_grid.grid[self.character.y][self.character.x] = self.character
 
         # Decrement timer each frame
         self.move_timer -= 1

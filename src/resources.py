@@ -35,6 +35,7 @@ class Resources:
         self.x, self.y = x, y
         self.xPosition, self.yPosition = grid.grid_to_pixel(x, y)
         collision_manager.grid.grid[self.y][self.x] = 'T'
+        collision_manager.object_grid.grid[self.y][self.x] = self
     
     def draw(self, surface):
         self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition)
@@ -42,6 +43,7 @@ class Resources:
     def update(self, collision_manager):
         if self.is_depleted():
             collision_manager.grid.grid[self.y][self.x] = ' '
+            collision_manager.object_grid.grid[self.y][self.x] = None
 
 
 if __name__ == '__main__':

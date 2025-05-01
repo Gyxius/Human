@@ -2,11 +2,12 @@ import pygame
 from settings import *
 
 class CollisionManager:
-    def __init__(self, player, npcs, grid, obstacles=None):
+    def __init__(self, player, npcs, grid, object_grid, obstacles=None):
         self.player = player
         self.npcs = npcs
         self.obstacles = obstacles or []
         self.grid = grid
+        self.object_grid = object_grid
 
     def is_colliding_circle(self, character, dx, dy):
         """
@@ -90,3 +91,33 @@ class CollisionManager:
             if cornerDistance_sq <= (RADIUS_SIZE**2):
                 self.npcs_attacked.add(circle)
         return self.npcs_attacked 
+    
+    def get_object_hit(self, hit_position_rect):
+        """
+        Detect what was hit by a rectangle (resources, npcs etc.), using grid collision logic.
+        
+        Args:
+            hit_position_rect (int, int): Rectangle coordinate of the hit
+
+        Returns:
+            object: The object that was hit, or None if nothing was hit.
+        """
+        hit_position_x, hit_position_y = hit_position_rect.x, hit_position_rect.y
+        hit_position_x, hit_position_y = hit_position_rect.x, hit_position_rect.y
+        hit_grid_x, hit_grid_y = self.grid.pixel_to_grid(hit_position_x, hit_position_y)
+        object_type = self.grid.grid[hit_grid_y][hit_grid_x]
+        object_hit = self.object_grid.grid[hit_grid_y][hit_grid_x]
+        
+        if object_type == 'T':
+            print("The player is hitting a Tree")
+        
+        elif object_type == 'C':
+            print("The player is hitting a Character")
+        
+        else:
+            print("Nothing was hit")
+        
+        return object_hit, object_type
+        
+
+        

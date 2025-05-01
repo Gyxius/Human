@@ -12,11 +12,14 @@ class NPC(Characters):
     self.clan = clan
     if self.clan == "RED":
       self.color = RED
+      self.grid_character = 'R'
     elif self.clan == "BLUE":
       self.color = BLUE
+      self.grid_character = 'B'
     sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
     super().__init__(sprite, "npc")
     self.state = IdleState(self)
+    
     self.movement_speed = speed
     self.last_move_time = pygame.time.get_ticks()
     self.damage = damage

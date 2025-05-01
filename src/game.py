@@ -17,6 +17,7 @@ class Game:
         self.surface.fill(GREEN)
         self.clock = pygame.time.Clock()
         self.grid = Grid(HEIGHT, WIDTH, BLOCK_SIZE)
+        self.object_grid = Grid(HEIGHT, WIDTH, BLOCK_SIZE)
         pygame.display.set_caption(TITLE)
         self.tree = Resources("wood", quantity = 10, color = FOREST_GREEN)
         self.enemy_factory = npcFactory(self.surface)
@@ -31,10 +32,9 @@ class Game:
         self.hud = HUD(self.player)
         self.npcs = self.enemies + self.allies
         # self.npcs = self.enemies + self.allies
-        self.collision_manager = CollisionManager(self.player, self.npcs, self.grid)
+        self.collision_manager = CollisionManager(self.player, self.npcs, self.grid, self.object_grid)
         self.target_manager = TargetManager(self.npcs, self.player)
         self.characters =  self.npcs + [self.player]
-        self.tree.spawn(self.collision_manager, self.grid)
         self.resources = [self.tree]
         [resource.spawn(self.collision_manager, self.grid) for resource in self.resources]
         [character.spawn(self.collision_manager, self.grid) for character in self.characters] # Spawn the characters 
@@ -91,7 +91,7 @@ class Game:
             self.surface.fill(GREEN)
 
             # self.grid.draw_grid(self.surface)
-            # self.grid.print_grid()
+            self.grid.print_grid()
             # Draw all the resources
 
             for resource in self.resources:

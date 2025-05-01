@@ -26,6 +26,7 @@ class Player(Characters):
         self.weapon = NoWeapon(self)
         self.healthbar = Healthbar(self)
         self.last_move_time = pygame.time.get_ticks()
+        self.grid_character = 'P'
 
     def movement_control(func):
         def wrapper(self, *args, **kwargs):
@@ -61,10 +62,12 @@ class Player(Characters):
         if 0 <= self.y + dy < collision_manager.grid.grid_height and 0 <= self.x + dx < collision_manager.grid.grid_width:
             if collision_manager.grid.grid[self.y + dy][self.x + dx] == ' ':
                 collision_manager.grid.grid[self.y][self.x] = ' '
+                collision_manager.object_grid.grid[self.y][self.x] = None
                 self.x = dx + self.x
                 self.y = dy +  self.y
                 self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
-                collision_manager.grid.grid[self.y][self.x] = 'C'
+                collision_manager.grid.grid[self.y][self.x] = self.grid_character
+                collision_manager.object_grid.grid[self.y][self.x] = self
 
     def draw(self, surface):
         # Draw the sprite
@@ -77,23 +80,50 @@ class Player(Characters):
     def update(self, collision_manager, grid):
         self.move(collision_manager, grid)
         self.weapon.update() 
-        self.attack_target(collision_manager)
+        self.hit_target(collision_manager)
         self.regenerate_health()
 
     @property
     def collision_block(self):
         return pygame.Rect(self.xPosition - RADIUS_SIZE, self.yPosition - RADIUS_SIZE, self.width, self.height)
 
-    def attack_target(self, collision_manager):
-        # Check who is around
-        if self.moving["space"] and not self.weapon.active:
-            self.weapon.attack(self)
-            if self.weapon.attack_rect: 
-                npcs_attacked = collision_manager.rectangle_collision(rect = self.weapon.attack_rect)   # Check if the attack (Rectangle Square collides with an enemy)
-                enemies_attacked = [npc for npc in npcs_attacked if npc.clan != self.clan]
-                for npc in enemies_attacked:
-                    print(f"{npc.id} is being attacked by player")
-                    npc.take_damage(self.weapon.damage, collision_manager.npcs, self)  # Make NPC take damage!
+    def hit_target(self, collision_manager):
+        """
+        Perform an attack if the player is pressing space and the weapon is ready.
+        Detects enemy NPCs in range and applies damage.
+        """
+        if not self.moving["space"] or self.weapon.active:
+            return
+        
+        self.weapon.attack(self)
+
+        if not self.weapon.attack_rect: 
+            return
+        
+        self.weapon.attack(self)
+
+        if not self.weapon.attack_rect:
+            return
+
+        targets = self._get_enemies_in_attack_range(collision_manager)
+        self._apply_damage_to_enemies(targets, collision_manager)
+        object_hit, object_type = collision_manager.get_object_hit(self.weapon.attack_rect)
+        print("The object being hit is :" + str(object_hit))
+        if object_type == 'T':
+            mined = object_hit.mine(1)
+            self.wood += mined
+
+    def _get_enemies_in_attack_range(self, collision_manager):
+        """Return a list of enemy NPCs hit by the attack."""
+        npcs_hit = collision_manager.rectangle_collision(rect=self.weapon.attack_rect)
+        return [npc for npc in npcs_hit if npc.clan != self.clan]
+    
+
+    def _apply_damage_to_enemies(self, enemies, collision_manager):
+        """Deal damage to all hit enemies."""
+        for npc in enemies:
+            print(f"{npc.id} is being attacked by player")
+            npc.take_damage(self.weapon.damage, collision_manager.npcs, self)
 
     def take_damage(self, damage, npc_list, attacker):
       """Called when the player is hit"""
