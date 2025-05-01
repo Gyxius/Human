@@ -71,7 +71,7 @@ class NPC(Characters):
       self.move(characters, collision_manager) 
       if self.is_in_state(CloseState):
         self.weapon.update() 
-        self.attack_target(collision_manager)
+        self.hit_target(collision_manager)
 
   def set_state(self, state):
      self.state = state
@@ -104,19 +104,21 @@ class NPC(Characters):
                     npc.target = []
                     npc.set_state(IdleState(npc))
 
-  def attack_target(self, collision_manager):
+  def hit_target(self, collision_manager):
     if self.target and not self.target[0].alive:
         print(f"NPC {self.id} target died during attack. Switching to IdleState.")
         self.target = []
         self.set_state(IdleState(self))
         return
   
-    if not self.weapon.active and self.is_in_state(CloseState):
-      print("attack enemy")
-      self.weapon.attack(self)
-      target = self.target[0]
-      target.take_damage(self.weapon.damage, collision_manager.npcs, self)  # Make NPC take damage!
-      self.rewards.reward(10 + 0.5*(100 - self.health), "attacked target")
+    if self.weapon.active or not self.is_in_state(CloseState):
+       return
+    
+    print("attack enemy")
+    self.weapon.attack(self)
+    target = self.target[0]
+    target.take_damage(self.weapon.damage, collision_manager.npcs, self)  # Make NPC take damage!
+    self.rewards.reward(10 + 0.5*(100 - self.health), "attacked target")
 
   def is_in_state(self, state_class):
     return isinstance(self.state, state_class)
