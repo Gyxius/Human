@@ -71,10 +71,8 @@ class Player(Characters):
         self.sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition)
         # Draw the attack
         self.weapon.draw(surface) 
-        # Draw the health bar
-        # self.healthbar = Sprites.Rectangle(surface, LIGHT_GREEN, self.xPosition - 20, self.yPosition + 30, self.health // 2, 10, 0)
-        self.healthbar.draw(surface)
         # self.rewards.draw(surface)
+        
 
     def update(self, collision_manager, grid):
         self.move(collision_manager, grid)

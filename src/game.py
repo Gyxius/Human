@@ -8,6 +8,7 @@ from npcFactory import *
 from player import *
 from grid import *
 from resources import *
+from hud import *
 
 class Game:
     def __init__(self):
@@ -27,6 +28,7 @@ class Game:
     
         self.allies = [NPC(self.surface, clan = "BLUE") for _ in range(1)]
         self.player = Player(self.surface, "Josh", self.grid)
+        self.hud = HUD(self.player)
         self.npcs = self.enemies + self.allies
         # self.npcs = self.enemies + self.allies
         self.collision_manager = CollisionManager(self.player, self.npcs, self.grid)
@@ -99,5 +101,6 @@ class Game:
                 npc.draw(self.surface)
 
             self.player.draw(self.surface)
+            self.hud.draw(self.surface)
             pygame.display.update()
         pygame.quit()

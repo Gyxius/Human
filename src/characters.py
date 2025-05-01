@@ -22,6 +22,7 @@ class Characters:
     self.healthbar = Healthbar(self)
     self.alive = True 
     self.rewards = 0
+    self.wood = 0
 
         # Reputation
     self.clan_points = 0
