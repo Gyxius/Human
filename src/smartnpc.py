@@ -10,16 +10,22 @@ class SmartNPC(Characters):
 		self.clan = clan
 		if self.clan == "RED":
 			self.color = RED
+			self.grid_character = 'R'
 		elif self.clan == "BLUE":
 			self.color = BLUE
+			self.grid_character = 'B'
 		sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
 		super().__init__(sprite, "npc")
 		self.state = IdleState(self)
 		self.speed = speed
 		self.damage = damage
+		self.movement_speed = speed
 		self.vision = vision
 		self.dx = 0
 		self.dy = 0
+		self.x = 0
+		self.y = 0
+		self.last_move_time = pygame.time.get_ticks()
 		self.attack_speed = 5
 		self.weapon = NoWeapon(self)
 		self.player = False
@@ -30,25 +36,45 @@ class SmartNPC(Characters):
 		self.actions = ['MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN', 'MOVE_RIGHT', 'ATTACK_PLAYER', 'IDLE']
 		self.total_reward = 0
 		self.q_table = {}  # Q-values for state-action pairs
-		self.epsilon = 0.3  # Exploration rate
+		self.epsilon = 0.05  # Exploration rate
 		self.alpha = 0.1    # Learning rate
 		self.gamma = 0.9    # Discount factor
 
+	def movement_control(func):
+		"""
+		Decorator to throttle NPC actions in play mode based on movement_speed,
+		while allowing immediate actions in training mode.
+		"""
+		def wrapper(self, *args, **kwargs):
+			# Training mode: act immediately
+			if not getattr(self, 'play_mode', False):
+				return func(self, *args, **kwargs)
+
+			# Play mode: throttle by movement_speed interval
+			current_time = pygame.time.get_ticks()
+			if current_time - self.last_move_time >= self.movement_speed:
+				result = func(self, *args, **kwargs)
+				self.last_move_time = current_time
+				return result
+
+			# Not enough time has passed: no action
+			# You can return a default (no-op) reward/flag, e.g., (0, False)
+			return (0, False)
+
+		return wrapper
+
 	def get_state(self, npc_list):
-		def bucketize(value, bucket_size):
-			return int(value // bucket_size)
-		MAX_DISTANCE = (WIDTH ** 2 + HEIGHT ** 2) ** 0.5  # Screen diagonal distance
+
 		nearest_enemy = self.get_nearest_npcs(npc_list)
-		nearest_ally = self.get_nearest_npcs(npc_list, ally=True)
 
-		ally_dx, ally_dy, ally_health, ally_distance = 0, 0, 0, 0
-		enemy_dx, enemy_dy, enemy_health, enemy_distance = 0, 0, 0, 0
+		# ally_dx, ally_dy, ally_health, ally_distance = 0, 0, 0, 0
+		enemy_x, enemy_y, enemy_health, enemy_distance = 0, 0, 0, 0
 
-		if nearest_ally:
-			ally_dx = nearest_ally.xPosition - self.xPosition
-			ally_dy = nearest_ally.yPosition - self.yPosition
-			ally_health = nearest_ally.health
-			ally_distance = ((ally_dx ** 2 + ally_dy ** 2) ** 0.5)
+		# if nearest_ally:
+		# 	ally_dx = nearest_ally.xPosition - self.xPosition
+		# 	ally_dy = nearest_ally.yPosition - self.yPosition
+		# 	ally_health = nearest_ally.health
+		# 	ally_distance = ((ally_dx ** 2 + ally_dy ** 2) ** 0.5)
 
 		if nearest_enemy:
 			enemy_dx = nearest_enemy.xPosition - self.xPosition
@@ -56,18 +82,15 @@ class SmartNPC(Characters):
 			enemy_health = nearest_enemy.health
 			enemy_distance = ((enemy_dx ** 2 + enemy_dy ** 2) ** 0.5)
 
-		# Bucket sizes for dx/dy = 10, health = 10, distances normalized
-		bucket_size = 100
-		# state = (
-		# 	bucketize(self.health, bucket_size),  # Self health bucket (0-10)
-		# 	bucketize(ally_dx, bucket_size), bucketize(ally_dy, bucket_size), bucketize(ally_health, bucket_size), bucketize(ally_distance / MAX_DISTANCE * 10, 1),
-		# 	bucketize(enemy_dx, bucket_size), bucketize(enemy_dy, bucket_size), bucketize(enemy_health, bucket_size), bucketize(enemy_distance / MAX_DISTANCE * 10, 1)
-		# )
-		state = (
-			bucketize(self.health, bucket_size),  # Self health bucket (0-10)
-			bucketize(ally_dx, bucket_size), bucketize(ally_dy, bucket_size), 
-			bucketize(enemy_dx, bucket_size), bucketize(enemy_dy, bucket_size),
-		)
+			state = (
+				self.x, self.y,
+				nearest_enemy.x, nearest_enemy.y
+			)
+		else:
+			state = (
+				self.x, self.y,
+				-1, -1
+			)
 
 		return state
 
@@ -76,19 +99,22 @@ class SmartNPC(Characters):
 			npcs = [npc for npc in npc_list if npc.clan != self.clan and npc.alive]
 		else:
 			npcs = [npc for npc in npc_list if npc.clan == self.clan and npc.alive]
+			# print('npcs : ' + str(npcs))
 		if not npcs:
 			return None
 		npcs.sort(key=lambda npc: ((npc.xPosition - self.xPosition) ** 2 + (npc.yPosition - self.yPosition) ** 2) ** 0.5)
 		return npcs[0]
 
-	def spawn(self, collision_manager):
-		xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
-		yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
-		while collision_manager.is_colliding_circle(self, xPosition, yPosition):
-			xPosition = random.randint(RADIUS_SIZE, WIDTH - RADIUS_SIZE)
-			yPosition = random.randint(RADIUS_SIZE, HEIGHT - RADIUS_SIZE)
-		self.xPosition = xPosition
-		self.yPosition = yPosition
+	def spawn(self, collision_manager, grid):
+		xPosition = random.randint(0, grid.grid_width - 1)
+		yPosition = random.randint(0, grid.grid_height - 1 )
+		while(collision_manager.grid_colliding_circle(self, xPosition, yPosition, grid)):
+			xPosition = random.randint(0, grid.grid_width - 1)
+			yPosition = random.randint(0, grid.grid_height - 1 )
+		self.x, self.y = xPosition, yPosition
+		self.xPosition, self.yPosition = grid.grid_to_pixel(xPosition, yPosition)
+		collision_manager.grid.grid[self.y][self.x] = self.grid_character
+		collision_manager.object_grid.grid[self.y][self.x] = self
 
 	def draw(self, surface):
 		if self.alive:
@@ -141,36 +167,42 @@ class SmartNPC(Characters):
 			target.take_damage(self.weapon.damage, collision_manager.npcs, self)
 			self.rewards.reward(10 + 0.5 * (100 - self.health), "attacked target")
 
-	def act(self, action, collision_manager, npcs):
+	@movement_control
+	def act(self, action, collision_manager, npcs, grid):
 		reward = 0
 		done = False
 
 		dx, dy = 0, 0
 		if action == 'MOVE_UP':
-			dy -= self.speed
+			dy -= 1
 		elif action == 'MOVE_DOWN':
-			dy += self.speed
+			dy += 1
 		elif action == 'MOVE_LEFT':
-			dx -= self.speed
+			dx -= 1
 		elif action == 'MOVE_RIGHT':
-			dx += self.speed
+			dx += 1
 
 		# Collision Check!
-		if action in ['MOVE_UP', 'MOVE_DOWN', 'MOVE_LEFT', 'MOVE_RIGHT']:
-			self.xPosition += dx
-			self.yPosition += dy
-			if collision_manager.is_colliding_circle(self, dx, dy):
-				# ❌ Can't move, hit something
-				reward = -10  # Penalize for bad move
-				# print(f"Collision detected at ({self.xPosition}, {self.yPosition}) trying to move {action}")
-			else:
-				# ✅ Move allowed
-				reward = 0  # Normal move cost
-				# print(f"Moved {action} to ({self.xPosition}, {self.yPosition})")
+		if 0 <= self.y + dy < collision_manager.grid.grid_height and 0 <= self.x + dx < collision_manager.grid.grid_width:
+			if collision_manager.grid.grid[self.y + dy][self.x + dx] == ' ':
+				if action in ['MOVE_UP', 'MOVE_DOWN', 'MOVE_LEFT', 'MOVE_RIGHT']:
+					collision_manager.grid.grid[self.y][self.x] = ' '
+					collision_manager.object_grid.grid[self.y][self.x] = None
+					self.x = dx + self.x
+					self.y = dy +  self.y
+					self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
+					collision_manager.grid.grid[self.y][self.x] = self.grid_character
+					collision_manager.object_grid.grid[self.y][self.x] = self
+					if collision_manager.is_colliding_circle(self, dx, dy):
+						# ❌ Can't move, hit something
+						reward = -10  # Penalize for bad move
+						# print(f"Collision detected at ({self.xPosition}, {self.yPosition}) trying to move {action}")
+					else:
+						# ✅ Move allowed
+						reward = -0.1  # Normal move cost
+						# print(f"Moved {action} to ({self.xPosition}, {self.yPosition})")
 
-		
-
-		elif action == 'ATTACK_PLAYER':
+		if action == 'ATTACK_PLAYER':
 			# Same as before: attack logic
 			nearest_enemy = self.get_nearest_npcs(npcs)
 			if nearest_enemy and self._target_is_close(nearest_enemy) and not collision_manager.is_colliding_circle(self, dx, dy):
@@ -181,19 +213,15 @@ class SmartNPC(Characters):
 			else:
 				reward = -5
 
-		elif action == 'IDLE':
+		if action == 'IDLE':
 			self.health = min(100, self.health + 1)
 			reward = -10  # Bigger penalty for doing nothing
-
-		# Keep NPC on screen
-		self.xPosition = max(RADIUS_SIZE, min(WIDTH - RADIUS_SIZE, self.xPosition))
-		self.yPosition = max(RADIUS_SIZE, min(HEIGHT - RADIUS_SIZE, self.yPosition))
 
 		self.total_reward += reward
 
 		# if not self.alive:
 		# 	done = True
-
+		# print(f"[TRAIN] action={action} → reward={reward}")
 		return reward, done
 
 	def _target_is_close(self, player):
@@ -205,8 +233,8 @@ class SmartNPC(Characters):
 	def is_in_state(self, state_class):
 		return isinstance(self.state, state_class)
 
-	def reset(self, collision_manager):
-		self.spawn(collision_manager)
+	def reset(self, collision_manager, grid):
+		self.spawn(collision_manager, grid)
 		self.health = 100
 		self.alive = True
 		self.total_reward = 0

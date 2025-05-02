@@ -23,6 +23,7 @@ class Characters:
     self.alive = True 
     self.rewards = 0
     self.wood = 0
+    self.play_mode = False
 
         # Reputation
     self.clan_points = 0

@@ -35,12 +35,15 @@ class NPC(Characters):
     self.rewards = Reward()
 
   def movement_control(func):
-    def wrapper(self, *args, **kwargs):
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_move_time >= self.movement_speed: 
-            func(self, *args, **kwargs)
-            self.last_move_time = current_time 
-    return wrapper
+      def wrapper(self, *args, **kwargs):
+          if getattr(self, 'play_mode', True):
+              current_time = pygame.time.get_ticks()
+              if current_time - self.last_move_time >= self.movement_speed:
+                  func(self, *args, **kwargs)
+                  self.last_move_time = current_time
+          else:
+              func(self, *args, **kwargs)
+      return wrapper
   
   def spawn(self, collision_manager, grid):
     xPosition = random.randint(0, grid.grid_width - 1)
@@ -123,3 +126,5 @@ class NPC(Characters):
   def is_in_state(self, state_class):
     return isinstance(self.state, state_class)
   
+  def act(self, *args, **kwargs):
+      return 0, False  # Dummy reward, done
