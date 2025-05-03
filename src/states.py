@@ -53,7 +53,7 @@ class IdleState(NpcState):
         # Check if it's time to pick a new action (move or idle)
         if self.move_timer <= 0:
             # 30% chance to idle (stand still), 70% chance to move
-            if random.random() < 0.3:
+            if random.random() < 0.1:
                 self.direction = (0, 0)  # Stand still
             else:
                 # Pick one of the 4 cardinal directions (no diagonal)

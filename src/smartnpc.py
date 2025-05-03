@@ -41,26 +41,14 @@ class SmartNPC(Characters):
 		self.gamma = 0.9    # Discount factor
 
 	def movement_control(func):
-		"""
-		Decorator to throttle NPC actions in play mode based on movement_speed,
-		while allowing immediate actions in training mode.
-		"""
 		def wrapper(self, *args, **kwargs):
-			# Training mode: act immediately
-			if not getattr(self, 'play_mode', False):
-				return func(self, *args, **kwargs)
-
-			# Play mode: throttle by movement_speed interval
-			current_time = pygame.time.get_ticks()
-			if current_time - self.last_move_time >= self.movement_speed:
-				result = func(self, *args, **kwargs)
-				self.last_move_time = current_time
-				return result
-
-			# Not enough time has passed: no action
-			# You can return a default (no-op) reward/flag, e.g., (0, False)
-			return (0, False)
-
+			if getattr(self, 'play_mode', False):
+				current_time = pygame.time.get_ticks()
+				if current_time - self.last_move_time >= self.movement_speed:
+					func(self, *args, **kwargs)
+					self.last_move_time = current_time
+				else:
+					func(self, *args, **kwargs)
 		return wrapper
 
 	def get_state(self, npc_list):

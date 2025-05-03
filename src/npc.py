@@ -36,7 +36,7 @@ class NPC(Characters):
 
   def movement_control(func):
       def wrapper(self, *args, **kwargs):
-          if getattr(self, 'play_mode', True):
+          if getattr(self, 'play_mode', False):
               current_time = pygame.time.get_ticks()
               if current_time - self.last_move_time >= self.movement_speed:
                   func(self, *args, **kwargs)

@@ -70,6 +70,8 @@ class Game:
                 pass
 
     def reset_npcs(self):
+        """Recrete enemies and allies while resetting the q table for the allies
+        """
         # Recreate NPC objects
         self.enemies = [NPC(self.surface, clan="RED") for _ in range(self.enemies_number)]
         self.allies = [SmartNPC(self.surface, clan="BLUE", q_table=self.shared_q_table) for _ in range(self.allies_number)]
@@ -77,6 +79,8 @@ class Game:
         self.npcs = self.enemies + self.allies
 
     def reset_managers(self):
+        """Reset the collision managers with the characters and grid as well as the target manager
+        """
         # Reinitialize managers
         self.collision_manager = CollisionManager(self.player, self.npcs, self.grid, self.object_grid)
         self.target_manager = TargetManager(self.npcs, self.player)
@@ -170,32 +174,25 @@ class Game:
     def run(self):
         with open('q_table.pkl', 'rb') as f:
             self.shared_q_table = pickle.load(f)
-        self.reset_npcs()
-        for npc in self.allies:
-            npc.q_table = self.shared_q_table
+            
+        for npc in self.npcs:
             npc.play_mode = True 
-            npc.epsilon = 0.1
+            npc.epsilon = 0.5
 
         self.reset_managers()
-        self.spawn_characters()
 
         running = True
         while running:
             # pygame.time.delay(60)
-            
             for event in pygame.event.get():
                 if event.type == QUIT:
                     running = False
-
                 self.player_move(event)
-
             # self.clock.tick(FPS)
-
             self.npcs = [npc for npc in self.npcs if npc.health > 0]
             self.resources = [resource for resource in self.resources if resource.quantity > 0]
             for resource in self.resources:
                 resource.update(self.collision_manager)
-            
             for npc in self.allies:
                 state = npc.get_state(self.npcs)
                 # state = npc.get_state(self.characters)
@@ -204,14 +201,14 @@ class Game:
                     action_index = random.randint(0, len(npc.actions) - 1)
                     npc.q_table[state] = [0] * len(npc.actions)
                 
-                print(f"State: {state}, Q-values: {npc.q_table[state]}")
+                # print(f"State: {state}, Q-values: {npc.q_table[state]}")
                 
                 if random.uniform(0, 1) < npc.epsilon:
                     action = random.choice(npc.actions)
                 else:
                     action_index = npc.q_table[state].index(max(npc.q_table[state]))
                     action = npc.actions[action_index]
-                print(f"{npc.clan} NPC chooses action: {action}")
+                # print(f"{npc.clan} NPC chooses action: {action}")
 
                 npc.act(action, self.collision_manager, self.npcs, self.grid)
 
@@ -223,7 +220,7 @@ class Game:
             self.surface.fill(GREEN)
 
             # self.grid.draw_grid(self.surface)
-            # self.grid.print_grid()
+            self.grid.print_grid()
             # Draw all the resources
 
             for resource in self.resources:
