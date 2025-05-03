@@ -130,7 +130,7 @@ class Game:
                 self.surface.fill(GREEN)
                 for npc in self.npcs:
                     npc.draw(self.surface)
-                self.player.update(self.collision_manager)
+                self.player.update(self.collision_manager,  self.grid)
                 self.player.draw(self.surface)
                 pygame.display.update()
 
@@ -144,6 +144,27 @@ class Game:
         # Save shared Q-table at the end of training
         with open('q_table.pkl', 'wb') as f:
             pickle.dump(self.shared_q_table, f)
+        pygame.quit()
+
+    def watch(self, watch_episodes=5, max_steps=500):
+        # os.environ["SDL_VIDEODRIVER"] = "x11"  # Use default video driver
+        pygame.display.quit()
+        pygame.display.init()
+        self.surface = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("Watch Trained NPCs")
+
+        with open('q_table.pkl', 'rb') as f:
+            self.shared_q_table = pickle.load(f)
+
+        for ep in range(watch_episodes):
+            self.reset_npcs()
+            for npc in self.allies:
+                npc.q_table = self.shared_q_table
+            self.reset_managers()
+            self.spawn_characters()
+
+            self.run_episode(ep, max_steps=max_steps, render=True)
+
         pygame.quit()
 
     def run(self):
