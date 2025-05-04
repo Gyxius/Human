@@ -97,13 +97,18 @@ class Game:
         for npc in self.allies:
             npc.q_table = self.shared_q_table  # Re-assign just in case
 
+        self.grid.clear()
+        self.object_grid.clear()
         self.reset_managers()
         self.spawn_characters()
 
+
     def run_episode(self, episode, max_steps=2000, render=False):
         self.reset_game()
+        #reset stuff?
         step_count = 0
         done = False
+        reward = 0
         running = True
 
         while running and not done and step_count < max_steps:
@@ -123,11 +128,17 @@ class Game:
                 # state = npc.get_state(self.npcs)
                 state = npc.get_state(self.characters)
                 action = npc.choose_action(state, self.collision_manager)
-                reward, done = npc.act(action, self.collision_manager, self.npcs, self.grid)
-                # reward, done = npc.act(action, self.collision_manager, self.characters)
+                # print('action :' +str(action))
+                try:
+                    reward, done = npc.act(action, self.collision_manager, self.npcs, self.grid)
+                except:
+                    reward, done = 0, False
                 next_state = npc.get_state(self.npcs)
                 # next_state = npc.get_state(self.characters)
                 npc.update_q_table(state, action, reward, next_state, training_mode=True)
+
+            for npc in self.enemies:
+                npc.update(self.characters, self.collision_manager)
 
             # Render only if required
             if render:
@@ -174,12 +185,12 @@ class Game:
     def run(self):
         with open('q_table.pkl', 'rb') as f:
             self.shared_q_table = pickle.load(f)
-            
+
+        self.reset_managers()
+
         for npc in self.npcs:
             npc.play_mode = True 
             npc.epsilon = 0.5
-
-        self.reset_managers()
 
         running = True
         while running:
@@ -220,7 +231,7 @@ class Game:
             self.surface.fill(GREEN)
 
             # self.grid.draw_grid(self.surface)
-            self.grid.print_grid()
+            # self.grid.print_grid()
             # Draw all the resources
 
             for resource in self.resources:

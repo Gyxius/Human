@@ -42,12 +42,18 @@ class IdleState(NpcState):
                 self.character.health += 2
             self.health_timer = 100  # Reset timer
         
-    def _enemy_is_close(self, enemy):
-        # The NPC notices  or not an enemy(player) within his range
-        dx = enemy.xPosition - self.character.xPosition
-        dy = enemy.yPosition - self.character.yPosition
-        distance = (dx**2 + dy**2) ** 0.5
-        return distance < self.character.vision  # Detection range
+    # def _enemy_is_close(self, enemy):
+    #     # The NPC notices  or not an enemy(player) within his range
+    #     dx = enemy.xPosition - self.character.xPosition
+    #     dy = enemy.yPosition - self.character.yPosition
+    #     distance = (dx**2 + dy**2) ** 0.5
+    #     return distance < self.character.vision  # Detection range
+    
+    def _enemy_is_close(self, target, distance = 2):
+        """ Check If the enemy is x case around using chebyshev distance """
+        dx = target.x - self.character.x
+        dy = target.y - self.character.y
+        return max(abs(dx), abs(dy)) < distance
     
     def _move_randomly(self, collision_manager):
         # Check if it's time to pick a new action (move or idle)
@@ -105,7 +111,7 @@ class FollowingState(NpcState):
                 self.character.x = dx + self.character.x
                 self.character.y = dy +  self.character.y
                 self.character.xPosition, self.character.yPosition = collision_manager.grid.grid_to_pixel(self.character.x, self.character.y)
-                collision_manager.grid.grid[self.character.y][self.character.x] = 'C'
+                collision_manager.grid.grid[self.character.y][self.character.x] = self.character.grid_character
 
         if self._target_is_far(target):
             print(f"{self.character.name} lost sight of the target. Switching to IdleState.")
@@ -119,21 +125,18 @@ class FollowingState(NpcState):
             print(f"{self.character.name} is next to the target. Switching to CloseState.")
             self.character.set_state(CloseState(self.character))
 
-    def _target_is_far(self, target, distance = 3):
+    def _target_is_far(self, target, distance = 6):
         """ Check If the enemy is x case around using chebyshev distance """
         dx = target.x - self.character.x
         dy = target.y - self.character.y
-        if max(abs(dx), abs(dy)) > distance:
-            return True
-        return False
+        return max(abs(dx), abs(dy)) > distance
     
-    def _target_is_close(self, target):
+    def _target_is_close(self, target, distance = 2):
         """ Check If the enemy is one case around using chebyshev distance """
         dx = target.x - self.character.x
         dy = target.y - self.character.y
-        if max(abs(dx), abs(dy)) > 0:
-            return True
-        return False
+        return max(abs(dx), abs(dy)) < distance
+    
 
 class CloseState(NpcState):
     def move(self, characters, collision_manager):

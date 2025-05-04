@@ -17,6 +17,9 @@ class Grid:
             for _ in range(self.grid_width):
                 row.append(' ')
             self.grid.append(row)
+            
+    def clear(self):
+        self._set_grid()
 
     def draw_grid(self, surface):
         for x in range(0, self.windows_width , self.block_size):

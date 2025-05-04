@@ -3,7 +3,7 @@ from weapons import *
 from reward import *
 
 class NPC(Characters):
-  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 300, vision = 200, damage = 10):
+  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 300, vision = 100, damage = 10):
     self.xPosition = 0
     self.yPosition = 0
     self.x = 0
@@ -20,7 +20,7 @@ class NPC(Characters):
     super().__init__(sprite, "npc")
     self.state = IdleState(self)
     
-    self.movement_speed = speed
+    self.movement_speed = 300
     self.last_move_time = pygame.time.get_ticks()
     self.damage = damage
     self.vision = vision # How far they can see
@@ -35,15 +35,22 @@ class NPC(Characters):
     self.rewards = Reward()
 
   def movement_control(func):
-      def wrapper(self, *args, **kwargs):
-          if getattr(self, 'play_mode', False):
-              current_time = pygame.time.get_ticks()
-              if current_time - self.last_move_time >= self.movement_speed:
-                  func(self, *args, **kwargs)
-                  self.last_move_time = current_time
-          else:
-              func(self, *args, **kwargs)
-      return wrapper
+    def wrapper(self, *args, **kwargs):
+      now = pygame.time.get_ticks()
+
+      # Always allow “play_mode” True characters to move after x seconds
+      if not getattr(self, 'play_mode', False):
+        return func(self, *args, **kwargs)
+
+      # Throttle normal NPCs
+      if now - self.last_move_time < self.movement_speed:
+        return  # too soon, skip this frame
+
+      # It’s been long enough — update timestamp *before* moving
+      self.last_move_time = now
+      return func(self, *args, **kwargs)
+
+    return wrapper
   
   def spawn(self, collision_manager, grid):
     xPosition = random.randint(0, grid.grid_width - 1)

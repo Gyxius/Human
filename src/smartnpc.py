@@ -19,7 +19,7 @@ class SmartNPC(Characters):
 		self.state = IdleState(self)
 		self.speed = speed
 		self.damage = damage
-		self.movement_speed = speed
+		self.movement_speed = 300
 		self.vision = vision
 		self.dx = 0
 		self.dy = 0
@@ -36,50 +36,43 @@ class SmartNPC(Characters):
 		self.actions = ['MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN', 'MOVE_RIGHT', 'ATTACK_PLAYER', 'IDLE']
 		self.total_reward = 0
 		self.q_table = {}  # Q-values for state-action pairs
-		self.epsilon = 0.05  # Exploration rate
+		self.epsilon = 0.5  # Exploration rate
 		self.alpha = 0.1    # Learning rate
 		self.gamma = 0.9    # Discount factor
 
 	def movement_control(func):
+		"""Throttle the NPC movement
+
+		Args:
+			func (_type_): _description_
+		"""
 		def wrapper(self, *args, **kwargs):
-			if getattr(self, 'play_mode', False):
-				current_time = pygame.time.get_ticks()
-				if current_time - self.last_move_time >= self.movement_speed:
-					func(self, *args, **kwargs)
-					self.last_move_time = current_time
-				else:
-					func(self, *args, **kwargs)
+			now = pygame.time.get_ticks()
+
+			# Always allow “play_mode” True characters to move after x seconds
+			if not getattr(self, 'play_mode', False):
+				return func(self, *args, **kwargs)
+
+			# Throttle normal NPCs
+			if now - self.last_move_time < self.movement_speed:
+				return  # too soon, skip this frame
+
+			# It’s been long enough — update timestamp *before* returning
+			self.last_move_time = now
+			return func(self, *args, **kwargs)
+
 		return wrapper
 
 	def get_state(self, npc_list):
 
 		nearest_enemy = self.get_nearest_npcs(npc_list)
-
-		# ally_dx, ally_dy, ally_health, ally_distance = 0, 0, 0, 0
-		enemy_x, enemy_y, enemy_health, enemy_distance = 0, 0, 0, 0
-
-		# if nearest_ally:
-		# 	ally_dx = nearest_ally.xPosition - self.xPosition
-		# 	ally_dy = nearest_ally.yPosition - self.yPosition
-		# 	ally_health = nearest_ally.health
-		# 	ally_distance = ((ally_dx ** 2 + ally_dy ** 2) ** 0.5)
-
 		if nearest_enemy:
-			enemy_dx = nearest_enemy.xPosition - self.xPosition
-			enemy_dy = nearest_enemy.yPosition - self.yPosition
-			enemy_health = nearest_enemy.health
-			enemy_distance = ((enemy_dx ** 2 + enemy_dy ** 2) ** 0.5)
-
-			state = (
-				self.x, self.y,
-				nearest_enemy.x, nearest_enemy.y
-			)
+			dx = abs(nearest_enemy.x - self.x)
+			dy = abs(nearest_enemy.y - self.y)
 		else:
-			state = (
-				self.x, self.y,
-				-1, -1
-			)
+			dx = dy = 0
 
+		state = (self.x, self.y, dx, dy)
 		return state
 
 	def get_nearest_npcs(self, npc_list, ally=False):
@@ -177,7 +170,7 @@ class SmartNPC(Characters):
 					collision_manager.grid.grid[self.y][self.x] = ' '
 					collision_manager.object_grid.grid[self.y][self.x] = None
 					self.x = dx + self.x
-					self.y = dy +  self.y
+					self.y = dy + self.y
 					self.xPosition, self.yPosition = grid.grid_to_pixel(self.x, self.y)
 					collision_manager.grid.grid[self.y][self.x] = self.grid_character
 					collision_manager.object_grid.grid[self.y][self.x] = self
@@ -187,7 +180,7 @@ class SmartNPC(Characters):
 						# print(f"Collision detected at ({self.xPosition}, {self.yPosition}) trying to move {action}")
 					else:
 						# ✅ Move allowed
-						reward = -0.1  # Normal move cost
+						reward = 0.1  # Normal move cost
 						# print(f"Moved {action} to ({self.xPosition}, {self.yPosition})")
 
 		if action == 'ATTACK_PLAYER':

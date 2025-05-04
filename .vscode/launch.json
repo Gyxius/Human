@@ -1,0 +1,23 @@
+// .vscode/launch.json
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Train with RL",
+        "type": "python",                // ← must be "python"
+        "request": "launch",
+        "program": "${workspaceFolder}/src/main.py",
+        "args": ["train"],
+        "console": "integratedTerminal",
+        "justMyCode": false
+        // no runtimeExecutable or interpreterPath here
+      },
+      {
+        "name": "Python Debugger: Current File",
+        "type": "python",                // ← also "python"
+        "request": "launch",
+        "program": "${file}",
+        "console": "integratedTerminal"
+      }
+    ]
+  }
