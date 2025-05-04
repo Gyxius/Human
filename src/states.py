@@ -41,13 +41,6 @@ class IdleState(NpcState):
             if self.character.health < 100:
                 self.character.health += 2
             self.health_timer = 100  # Reset timer
-        
-    # def _enemy_is_close(self, enemy):
-    #     # The NPC notices  or not an enemy(player) within his range
-    #     dx = enemy.xPosition - self.character.xPosition
-    #     dy = enemy.yPosition - self.character.yPosition
-    #     distance = (dx**2 + dy**2) ** 0.5
-    #     return distance < self.character.vision  # Detection range
     
     def _enemy_is_close(self, target, distance = 2):
         """ Check If the enemy is x case around using chebyshev distance """
@@ -57,21 +50,17 @@ class IdleState(NpcState):
     
     def _move_randomly(self, collision_manager):
         # Check if it's time to pick a new action (move or idle)
-        if self.move_timer <= 0:
-            # 30% chance to idle (stand still), 70% chance to move
-            if random.random() < 0.1:
-                self.direction = (0, 0)  # Stand still
-            else:
-                # Pick one of the 4 cardinal directions (no diagonal)
-                self.direction = random.choice([
-                    (0, -1),  # Up
-                    (0, 1),   # Down
-                    (-1, 0),  # Left
-                    (1, 0)    # Right
-                ])
-
-            # Set timer for how long to keep moving or standing still
-            self.move_timer = random.randint(30, 100)  # Frames until next decision
+        # 30% chance to idle (stand still), 70% chance to move
+        if random.random() < 0.1:
+            self.direction = (0, 0)  # Stand still
+        else:
+            # Pick one of the 4 cardinal directions (no diagonal)
+            self.direction = random.choice([
+                (0, -1),  # Up
+                (0, 1),   # Down
+                (-1, 0),  # Left
+                (1, 0)    # Right
+            ])
 
         # Apply movement only if the NPC is moving
         if self.direction != (0, 0):
@@ -86,9 +75,6 @@ class IdleState(NpcState):
                     self.character.xPosition, self.character.yPosition = collision_manager.grid.grid_to_pixel(self.character.x, self.character.y)
                     collision_manager.grid.grid[self.character.y][self.character.x] = self.character.grid_character
                     collision_manager.object_grid.grid[self.character.y][self.character.x] = self.character
-
-        # Decrement timer each frame
-        self.move_timer -= 1
 
 class FollowingState(NpcState):
     def move(self, characters, collision_manager):

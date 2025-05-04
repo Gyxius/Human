@@ -3,7 +3,7 @@ from weapons import *
 from reward import *
 
 class NPC(Characters):
-  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 300, vision = 100, damage = 10):
+  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 500, vision = 100, damage = 10):
     self.xPosition = 0
     self.yPosition = 0
     self.x = 0
@@ -20,7 +20,7 @@ class NPC(Characters):
     super().__init__(sprite, "npc")
     self.state = IdleState(self)
     
-    self.movement_speed = 300
+    self.movement_speed = speed
     self.last_move_time = pygame.time.get_ticks()
     self.damage = damage
     self.vision = vision # How far they can see
