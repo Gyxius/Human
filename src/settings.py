@@ -1,5 +1,5 @@
 # Window settings
-WIDTH = 50*20
+WIDTH = 50*20 
 HEIGHT = 50*14
 BLOCK_SIZE = 50
 TITLE = "HUMAN"
