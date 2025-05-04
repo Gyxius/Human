@@ -186,7 +186,7 @@ class Game:
 
         for npc in self.npcs:
             npc.play_mode = True 
-            npc.epsilon = 0.5
+            npc.epsilon = 0.3
 
         running = True
         while running:
