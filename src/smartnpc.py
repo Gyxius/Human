@@ -76,7 +76,7 @@ class SmartNPC(Characters):
 			dx = dy = x = y = enemy_health = -1
 		
 
-		state = (self.x, self.y, dx, dy, x, y)
+		state = (self.x, self.y, dx, dy)
 		return state
 
 	def get_nearest_npcs(self, npc_list, ally=False):

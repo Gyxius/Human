@@ -8,3 +8,7 @@ Avoid spawning where there are already characters
 - if it does offer a new spawn place
 - check again 
 - if no then spawn them there
+
+To train
+- First put multiple npcs
+- Then put only one if wanted for play
