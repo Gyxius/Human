@@ -29,9 +29,9 @@ class Game:
         self.tree = Resources("wood", quantity=10, color=FOREST_GREEN)
 
         # --- create NPC factories & lists ---
-        self.enemy_factory = npcFactory(self.surface)
+        self.enemy_factory  = npcFactory(self.surface)
         self.enemies_number = 1
-        self.allies_number = 1
+        self.allies_number  = 1
 
         # Q‑table shared by all SmartNPC allies
         self.shared_q_table = {}
@@ -101,6 +101,10 @@ class Game:
         if not self.train:
             self.player.spawn(self.collision_manager, self.grid)
 
+    def spawn_resources(self):
+        self.tree = Resources("wood", quantity=10, color=FOREST_GREEN)
+        [r.spawn(self.collision_manager, self.grid) for r in self.resources]
+
     def reset_game(self):
         """Called at start of each episode (train or watch)."""
         self.reset_npcs()
@@ -108,6 +112,7 @@ class Game:
             ally.q_table = self.shared_q_table
         self.reset_managers()
         self.spawn_characters()
+        self.spawn_resources()
 
     def run_episode(self, episode, max_steps=2000, render=False):
         self.reset_game()
@@ -179,6 +184,8 @@ class Game:
         pygame.quit()
 
     def run(self):
+        """Play Mode where you can play
+        """
         with open('q_table.pkl', 'rb') as f:
             self.shared_q_table = pickle.load(f)
 
@@ -227,7 +234,7 @@ class Game:
             self.surface.fill(GREEN)
 
             # self.grid.draw_grid(self.surface)
-            # self.grid.print_grid()
+            self.grid.print_grid()
             # Draw all the resources
 
             for resource in self.resources:

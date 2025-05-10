@@ -48,6 +48,22 @@ class Player(Characters):
 
     @movement_control
     def move(self, collision_manager, grid):
+        """
+        Update the player's grid position based on current movement flags.
+
+        Checks for collisions via the provided CollisionManager and only
+        commits the move if the target cell is free.
+
+        Parameters:
+            collision_manager (CollisionManager):
+                used to test and resolve collisions before moving.
+            grid (Grid):
+                the spatial grid in which the player's x/y coordinates live.
+
+        Side-effects:
+            - updates self.x, self.y, self.xPosition, self.yPosition
+            - updates grid occupancy cells
+        """
         dx = dy = 0 
         if self.moving["up"]:
             dy = -1
@@ -57,8 +73,14 @@ class Player(Characters):
             dx = - 1
         if self.moving["right"]:
             dx = 1
+
+        self._attempt_move(dx, dy, collision_manager, grid)
         
-        # if not collision_manager.grid_colliding_circle(self, self.x + dx, self.y + dy, grid):
+    def _attempt_move(self, dx, dy, collision_manager, grid):
+        """
+        If (x+dx,y+dy) is on-grid and empty, clear the old cell,
+        update our x/y + pixel position, and occupy the new cell.
+        """
         if 0 <= self.y + dy < collision_manager.grid.grid_height and 0 <= self.x + dx < collision_manager.grid.grid_width:
             if collision_manager.grid.grid[self.y + dy][self.x + dx] == ' ':
                 collision_manager.grid.grid[self.y][self.x] = ' '
