@@ -1,6 +1,6 @@
 # Window settings
-WIDTH = 50*20 
-HEIGHT = 50*14
+WIDTH = (50*20)*2 // 3
+HEIGHT = (50*14)*2 // 3
 BLOCK_SIZE = 50
 TITLE = "HUMAN"
 FPS = 60
@@ -21,3 +21,5 @@ FOREST_GREEN = (34, 139, 34)
 
 # Character 
 RADIUS_SIZE = 20
+ENEMIES = 1
+ALLIES = 1

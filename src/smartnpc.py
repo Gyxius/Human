@@ -33,7 +33,7 @@ class SmartNPC(Characters):
 		self.wood = 0
 		self.attack_reward = 0  # TODO BUILD THE REWARD SYSTEM USING THE CLASS
 		self.rewards = Reward()
-		self.actions = ['MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN', 'MOVE_RIGHT', 'ATTACK_PLAYER', 'IDLE']
+		self.actions = ['MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN', 'MOVE_RIGHT', 'ATTACK_PLAYER', 'IDLE', 'MINE']
 		self.total_reward = 0
 		self.q_table = {}  # Q-values for state-action pairs
 		self.epsilon = 0.5  # Exploration rate
@@ -63,9 +63,10 @@ class SmartNPC(Characters):
 
 		return wrapper
 
-	def get_state(self, npc_list):
+	def get_state(self, npc_list, resources_list):
 
 		nearest_enemy = self.get_nearest_npcs(npc_list)
+		resources = self.get_nearest_resources(resources_list)
 		if nearest_enemy:
 			dx = abs(nearest_enemy.x - self.x)
 			dy = abs(nearest_enemy.y - self.y)
@@ -74,9 +75,15 @@ class SmartNPC(Characters):
 			enemy_health = nearest_enemy.health
 		else:
 			dx = dy = x = y = enemy_health = -1
+
+		if resources:
+			resourcexdx = abs(resources.x - self.x)
+			resourceydy = abs(resources.y - self.y)
+		else:
+			resourcexdx = resourceydy = 0
 		
 
-		state = (self.x, self.y, dx, dy)
+		state = (self.x, self.y, dx, dy, resourcexdx, resourceydy)
 		return state
 
 	def get_nearest_npcs(self, npc_list, ally=False):
@@ -89,6 +96,12 @@ class SmartNPC(Characters):
 			return None
 		npcs.sort(key=lambda npc: ((npc.xPosition - self.xPosition) ** 2 + (npc.yPosition - self.yPosition) ** 2) ** 0.5)
 		return npcs[0]
+	
+	def get_nearest_resources(self, resources_list):
+		if not resources_list:
+			return None
+		resources_list.sort(key=lambda resource: ((resource.xPosition - self.xPosition) ** 2 + (resource.yPosition - self.yPosition) ** 2) ** 0.5)
+		return resources_list[0]
 
 	def spawn(self, collision_manager, grid):
 		xPosition = random.randint(0, grid.grid_width - 1)
@@ -154,6 +167,8 @@ class SmartNPC(Characters):
 
 	@movement_control
 	def act(self, action, collision_manager, npcs, grid):
+		""" Given an action it will return a reward
+		"""
 		reward = 0
 		done = False
 
@@ -167,7 +182,7 @@ class SmartNPC(Characters):
 		elif action == 'MOVE_RIGHT':
 			dx += 1
 
-		# Collision Check!
+		# Actions: UP, DOWN, LEFT, RIGHT -> Check Collision Check before giving rewards 
 		if 0 <= self.y + dy < collision_manager.grid.grid_height and 0 <= self.x + dx < collision_manager.grid.grid_width:
 			if collision_manager.grid.grid[self.y + dy][self.x + dx] == ' ':
 				if action in ['MOVE_UP', 'MOVE_DOWN', 'MOVE_LEFT', 'MOVE_RIGHT']:
@@ -187,6 +202,7 @@ class SmartNPC(Characters):
 						reward = 0.1  # Normal move cost
 						# print(f"Moved {action} to ({self.xPosition}, {self.yPosition})")
 
+		#Action: ATTACK
 		if action == 'ATTACK_PLAYER':
 			# Same as before: attack logic
 			nearest_enemy = self.get_nearest_npcs(npcs)
@@ -198,15 +214,36 @@ class SmartNPC(Characters):
 			else:
 				reward = -5
 
+		#Action: IDLE
 		if action == 'IDLE':
 			self.health = min(100, self.health + 1)
-			reward = -10  # Bigger penalty for doing nothing
+			reward = -10 
+
+		#Action: MINE
+		if action == "MINE":
+			# Check if the surrounding environment contains a tree
+			# If it does return a reward
+			# If it doesn't return 0 or a negative reward
+			grid = collision_manager.grid.grid
+			height = len(grid)
+			width = len(grid[0]) if height > 0 else 0
+
+			def is_tree(y, x):
+				return 0 <= y < height and 0 <= x < width and grid[y][x] == 'T'
+
+			if (
+				is_tree(self.y + 1, self.x) or
+				is_tree(self.y - 1, self.x) or
+				is_tree(self.y, self.x + 1) or
+				is_tree(self.y, self.x - 1)
+			):
+				reward = 100
+			else:
+				reward = 0
+			print('SmartNPC is MINING')
+			
 
 		self.total_reward += reward
-
-		# if not self.alive:
-		# 	done = True
-		# print(f"[TRAIN] action={action} → reward={reward}")
 		return reward, done
 
 	def _target_is_close(self, player):

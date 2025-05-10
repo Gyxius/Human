@@ -46,6 +46,10 @@ class CollisionManager:
             return True
 
         return False
+    
+    def clear_position(self, x, y):
+        self.grid.grid[y][x] = ' '
+        self.object_grid.grid[y][x] = None
 
     @staticmethod
     def circle_collision(x1, y1, obj2):

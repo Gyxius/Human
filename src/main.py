@@ -9,7 +9,7 @@ def train():
     game = Game(True)
     pygame.init()
     DEFAULT_EPISODES = 1000
-    MAX_STEPS = 2000
+    MAX_STEPS = 3000
     if len(sys.argv) > 2:
         raw = sys.argv[2]
         try:
@@ -18,7 +18,7 @@ def train():
             print(f"Error: could not parse number of episodes ('{raw}') as an integer:\n  {e}")
             sys.exit(1)
         else:
-            game.train_NPC(episodes=nb_episodes, max_steps=1000)
+            game.train_NPC(episodes=nb_episodes, max_steps=MAX_STEPS)
     else:
         game.train_NPC(episodes=DEFAULT_EPISODES, max_steps=MAX_STEPS)
 

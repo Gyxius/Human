@@ -30,8 +30,8 @@ class Game:
 
         # --- create NPC factories & lists ---
         self.enemy_factory  = npcFactory(self.surface)
-        self.enemies_number = 1
-        self.allies_number  = 1
+        self.enemies_number = ENEMIES
+        self.allies_number  = ALLIES
 
         # Q‑table shared by all SmartNPC allies
         self.shared_q_table = {}
@@ -133,14 +133,14 @@ class Game:
 
             # --- allies (RL) take actions ---
             for ally in self.allies:
-                state  = ally.get_state(self.characters)
+                state  = ally.get_state(self.characters, self.resources)
                 action = ally.choose_action(state, self.collision_manager)
                 try:
                     reward, done = ally.act(action, self.collision_manager, self.npcs, self.grid)
                 except TypeError:
                     # in case act() returned None
                     reward, done = 0, False
-                next_s = ally.get_state(self.npcs)
+                next_s = ally.get_state(self.npcs, self.resources)
                 ally.update_q_table(state, action, reward, next_s, training_mode=True)
 
             # --- enemies & (in watch) player update ---
@@ -193,23 +193,27 @@ class Game:
 
         for npc in self.npcs:
             npc.play_mode = True 
-            npc.epsilon = 0.3
+            npc.epsilon = 0.3 # Default to 0.3
 
         running = True
         while running:
-            # pygame.time.delay(60)
             for event in pygame.event.get():
                 if event.type == QUIT:
                     running = False
                 self.player_move(event)
-            # self.clock.tick(FPS)
+
+            # Remove Dead NPCs
+            for n in self.npcs:
+                if n.health <= 0:
+                    self.collision_manager.clear_position(n.x, n.y)
             self.npcs = [npc for npc in self.npcs if npc.health > 0]
+
             self.resources = [resource for resource in self.resources if resource.quantity > 0]
             for resource in self.resources:
                 resource.update(self.collision_manager)
+
             for npc in self.allies:
-                state = npc.get_state(self.npcs)
-                # state = npc.get_state(self.characters)
+                state = npc.get_state(self.npcs, self.resources)
                 if state not in npc.q_table:
                     # If the state is new then we pick an action at random
                     action_index = random.randint(0, len(npc.actions) - 1)
@@ -218,11 +222,12 @@ class Game:
                 print(f"State: {state}, Q-values: {npc.q_table[state]}")
                 
                 if random.uniform(0, 1) < npc.epsilon:
+                    print('random action')
                     action = random.choice(npc.actions)
                 else:
                     action_index = npc.q_table[state].index(max(npc.q_table[state]))
                     action = npc.actions[action_index]
-                # print(f"{npc.clan} NPC chooses action: {action}")
+                print(f"{npc.clan} NPC chooses action: {action}")
 
                 npc.act(action, self.collision_manager, self.npcs, self.grid)
 

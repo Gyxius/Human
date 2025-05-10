@@ -78,7 +78,7 @@ class Player(Characters):
         
     def _attempt_move(self, dx, dy, collision_manager, grid):
         """
-        If (x+dx,y+dy) is on-grid and empty, clear the old cell,
+        If (x+dx,y+dy) is on grid and empty, clear the old cell,
         update our x/y + pixel position, and occupy the new cell.
         """
         if 0 <= self.y + dy < collision_manager.grid.grid_height and 0 <= self.x + dx < collision_manager.grid.grid_width:
