@@ -34,7 +34,7 @@ class Characters:
     }
 
     # Economy and Assets
-    self.money = 100
+    self.gold = 0
     self.inventory = []
     self.house = None
     self.land = []

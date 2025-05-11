@@ -37,7 +37,11 @@ class Game:
         self.shared_q_table = {}
 
         # instantiate enemies & allies
-        self.enemies = [NPC(self.surface, clan="RED") for _ in range(self.enemies_number)]
+        # self.enemies = [NPC(self.surface, clan="RED") for _ in range(self.enemies_number)]
+        self.default_enemies = [self.enemy_factory.create_npc("RED", npc_type="default") for _ in range(self.enemies_number)]
+        self.enemies = [self.enemy_factory.create_npc("RED", npc_type="default"),\
+        self.enemy_factory.create_npc("RED", npc_type="large"), \
+        self.enemy_factory.create_npc("RED", npc_type="small")]
         self.allies  = [SmartNPC(self.surface, clan="BLUE", q_table=self.shared_q_table)
                         for _ in range(self.allies_number)]
 
@@ -79,7 +83,10 @@ class Game:
 
     def reset_npcs(self):
         """Recreate enemies & allies, and rebuild self.characters accordingly."""
-        self.enemies = [NPC(self.surface, clan="RED") for _ in range(self.enemies_number)]
+        # self.enemies = [NPC(self.surface, clan="RED") for _ in range(self.enemies_number)]
+        self.enemies = [self.enemy_factory.create_npc("RED", npc_type="default"), \
+        self.enemy_factory.create_npc("RED", npc_type="large"), \
+        self.enemy_factory.create_npc("RED", npc_type="small")]
         self.allies  = [SmartNPC(self.surface, clan="BLUE", q_table=self.shared_q_table)
                         for _ in range(self.allies_number)]
         self.npcs = self.enemies + self.allies

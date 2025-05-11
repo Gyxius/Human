@@ -2,6 +2,18 @@ from characters import *
 from weapons import *
 from settings import *
 
+"""
+player.py
+----------
+
+Responsibilities:
+    - Handle player input & movement
+    - Manage health regeneration
+    - Perform attacks / mining
+    - Expose `wood` & `gold` counters
+
+Rendering is delegated to HUD.draw(), not here!
+"""
 
 class Player(Characters):
     def __init__(self, surface, name, grid):
@@ -98,7 +110,6 @@ class Player(Characters):
         self.weapon.draw(surface) 
         # self.rewards.draw(surface)
         
-
     def update(self, collision_manager, grid):
         self.move(collision_manager, grid)
         self.weapon.update() 
@@ -140,7 +151,6 @@ class Player(Characters):
         npcs_hit = collision_manager.rectangle_collision(rect=self.weapon.attack_rect)
         return [npc for npc in npcs_hit if npc.clan != self.clan]
     
-
     def _apply_damage_to_enemies(self, enemies, collision_manager):
         """Deal damage to all hit enemies."""
         for npc in enemies:
