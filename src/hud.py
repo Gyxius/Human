@@ -22,9 +22,11 @@ Usage:
 class HUD:
     def __init__(self, player, font_size=24):
         self.player = player
-        img_path = os.path.join("assets", "images", "gold.png")
-        self.gold_icon = pygame.image.load(img_path)
+        gold_img_path = os.path.join("assets", "images", "gold.png")
+        self.gold_icon = pygame.image.load(gold_img_path)
         self.font = pygame.font.Font('freesansbold.ttf', 20)
+        wood_img_path = os.path.join("assets", "images", "wood.png")
+        self.wood_icon = pygame.image.load(wood_img_path)
 
     def draw(self, surface):
         self.draw_healthbar(surface)
@@ -48,15 +50,16 @@ class HUD:
         return rect
     
     def draw_wood(self, surface):
-        text = self.font.render('Wood: ' + str(self.player.wood), True, BLACK)
-        textRect = text.get_rect()
-        posx = 10
-        posy = 60
-        textRect = (posx, posy)
-        surface.blit(text, textRect)
+        icon_size = 16
+        icon = pygame.transform.scale(self.wood_icon, (icon_size, icon_size))
+        posx = 40
+        posy = 40
+        surface.blit(icon, (posx, posy))
+        font = pygame.font.Font('freesansbold.ttf', 15)
+        text = font.render(f"{self.player.wood}", True, BLACK)
+        surface.blit(text, (posx + icon_size, posy + 2))
 
     def draw_gold(self, surface):
-        # Draws on the screens the amount of gold the player has
         icon_size = 16
         icon = pygame.transform.scale(self.gold_icon, (icon_size, icon_size))
         posx = 10
