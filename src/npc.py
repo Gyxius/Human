@@ -3,7 +3,7 @@ from weapons import *
 from reward import *
 
 class NPC(Characters):
-  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 500, vision = 100, damage = 10):
+  def __init__(self, surface, clan, radius = RADIUS_SIZE, speed = 500, vision = 4, damage = 10):
     self.xPosition = 0
     self.yPosition = 0
     self.x = 0
@@ -11,10 +11,10 @@ class NPC(Characters):
     self.radius = radius
     self.clan = clan
     if self.clan == "RED":
-      self.color = RED
+      self.color = ZOMBIE_BROWN
       self.grid_character = 'R'
     elif self.clan == "BLUE":
-      self.color = BLUE
+      self.color = WHITE
       self.grid_character = 'B'
     sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
     super().__init__(sprite, "npc")

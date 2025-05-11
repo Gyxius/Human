@@ -46,7 +46,7 @@ class IdleState(NpcState):
         """ Check If the enemy is x case around using chebyshev distance """
         dx = target.x - self.character.x
         dy = target.y - self.character.y
-        return max(abs(dx), abs(dy)) < distance
+        return max(abs(dx), abs(dy)) < self.character.vision
     
     def _move_randomly(self, collision_manager):
         # Check if it's time to pick a new action (move or idle)
@@ -115,13 +115,13 @@ class FollowingState(NpcState):
         """ Check If the enemy is x case around using chebyshev distance """
         dx = target.x - self.character.x
         dy = target.y - self.character.y
-        return max(abs(dx), abs(dy)) > distance
+        return max(abs(dx), abs(dy)) > self.character.vision
     
     def _target_is_close(self, target, distance = 2):
         """ Check If the enemy is one case around using chebyshev distance """
         dx = target.x - self.character.x
         dy = target.y - self.character.y
-        return max(abs(dx), abs(dy)) < distance
+        return max(abs(dx), abs(dy)) < self.character.vision
     
 
 class CloseState(NpcState):
@@ -135,7 +135,8 @@ class CloseState(NpcState):
         """ Check If the enemy is x case around using chebyshev distance """
         dx = target.x - self.character.x
         dy = target.y - self.character.y
-        if max(abs(dx), abs(dy)) > distance:
+        # How far the enemy can attack
+        if max(abs(dx), abs(dy)) > 1:
             return True
         return False
 

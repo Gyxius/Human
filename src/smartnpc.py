@@ -12,7 +12,7 @@ class SmartNPC(Characters):
 			self.color = RED
 			self.grid_character = 'R'
 		elif self.clan == "BLUE":
-			self.color = BLUE
+			self.color = WHITE
 			self.grid_character = 'B'
 		sprite = Sprites.Circle(surface, self.color, self.xPosition, self.yPosition, self.radius)
 		super().__init__(sprite, "npc")
