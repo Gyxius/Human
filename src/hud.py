@@ -89,6 +89,7 @@ class HUD:
         # 2) render each stat line by line
         font = pygame.font.Font(None, 24)
         stats = [
+            f"XP: {self.player.experience}/{self.player.max_experience}",
             f"HP: {self.player.health}/{self.player.max_health}",
             f"MP: {self.player.magic}/{self.player.max_magic}",
             f"Speed: {self.player.speed}",

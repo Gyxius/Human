@@ -40,6 +40,8 @@ class Player(Characters):
         self.healthbar = Healthbar(self)
         self.last_move_time = pygame.time.get_ticks()
         self.grid_character = 'P'
+        self.experience = 0
+        self.max_experience = 1000
         self.speed = 0
         self.stamina = 0
         self.magic = 100
