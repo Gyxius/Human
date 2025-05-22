@@ -15,6 +15,7 @@ class Characters:
     self.name = name
     self.sprite = sprite
     self.health = 100
+    self.max_health = 100
     self.status = "Villager"  # Villager, Chief, Slave, Outcast
     self.profession = "Unemployed"
     self.width = 2 * RADIUS_SIZE

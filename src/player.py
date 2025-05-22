@@ -34,11 +34,17 @@ class Player(Characters):
         self.health_timer = 0 
         self.regeneration_time = 2
         self.player = True 
-        self.damage = 30
+        self.attack = 30
+        self.damage = self.attack
         self.weapon = NoWeapon(self)
         self.healthbar = Healthbar(self)
         self.last_move_time = pygame.time.get_ticks()
         self.grid_character = 'P'
+        self.speed = 0
+        self.stamina = 0
+        self.magic = 100
+        self.max_magic = 100
+        self.defense = 0
 
     def movement_control(func):
         def wrapper(self, *args, **kwargs):

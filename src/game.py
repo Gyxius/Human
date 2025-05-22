@@ -74,6 +74,7 @@ class Game:
             elif event.key == K_LEFT:  self.player.moving["left"]  = True
             elif event.key == K_RIGHT: self.player.moving["right"] = True
             elif event.key == K_SPACE: self.player.moving["space"] = True
+            elif event.key == K_e:     self.hud.toggle_stats()
         elif event.type == KEYUP:
             if   event.key == K_UP:    self.player.moving["up"]    = False
             elif event.key == K_DOWN:  self.player.moving["down"]  = False
