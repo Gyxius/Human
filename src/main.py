@@ -8,6 +8,9 @@ ENEMY_RADIUS = 20
 ENEMY_COUNT = 10
 PLAYER_SPEED = 5
 ENEMY_SPEED = 2
+PLAYER_MAX_HEALTH = 100
+ENEMY_MAX_HEALTH = 30
+COLLISION_DAMAGE = 1
 
 # --- Setup
 pygame.init()
@@ -17,14 +20,13 @@ clock = pygame.time.Clock()
 
 # --- Player
 player_pos = pygame.Vector2(WIDTH // 2, HEIGHT // 2)
+player_health = PLAYER_MAX_HEALTH
 
 # --- Enemies
 enemies = []
 for _ in range(ENEMY_COUNT):
     pos = pygame.Vector2(random.randint(0, WIDTH), random.randint(0, HEIGHT))
-    # Assign each enemy a random direction
-    direction = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
-    enemies.append({"pos": pos, "dir": direction})
+    enemies.append({"pos": pos, "health": ENEMY_MAX_HEALTH})
 
 def move_player(keys, pos):
     if keys[pygame.K_w] or keys[pygame.K_UP]:
@@ -39,24 +41,28 @@ def move_player(keys, pos):
     pos.x = max(PLAYER_RADIUS, min(WIDTH - PLAYER_RADIUS, pos.x))
     pos.y = max(PLAYER_RADIUS, min(HEIGHT - PLAYER_RADIUS, pos.y))
 
-def move_enemies(enemy_list):
+def move_enemies(enemy_list, player_pos):
     for enemy in enemy_list:
-        enemy["pos"] += enemy["dir"] * ENEMY_SPEED
-        # Bounce off edges of screen
-        if enemy["pos"].x < ENEMY_RADIUS or enemy["pos"].x > WIDTH - ENEMY_RADIUS:
-            enemy["dir"].x *= -1
-        if enemy["pos"].y < ENEMY_RADIUS or enemy["pos"].y > HEIGHT - ENEMY_RADIUS:
-            enemy["dir"].y *= -1
+        # Move towards the player
+        direction = player_pos - enemy["pos"]
+        if direction.length() != 0:
+            direction = direction.normalize()
+            enemy["pos"] += direction * ENEMY_SPEED
+        # Keep enemy within screen bounds
+        enemy["pos"].x = max(ENEMY_RADIUS, min(WIDTH - ENEMY_RADIUS, enemy["pos"].x))
+        enemy["pos"].y = max(ENEMY_RADIUS, min(HEIGHT - ENEMY_RADIUS, enemy["pos"].y))
 
 def check_collisions():
-    """Remove enemies if the player collides with them."""
-    global enemies
+    """Handle damage when the player collides with enemies."""
+    global enemies, player_health
     remaining_enemies = []
     for enemy in enemies:
         dist = player_pos.distance_to(enemy["pos"])
-        if dist > PLAYER_RADIUS + ENEMY_RADIUS:
+        if dist <= PLAYER_RADIUS + ENEMY_RADIUS:
+            player_health -= COLLISION_DAMAGE
+            enemy["health"] -= COLLISION_DAMAGE
+        if enemy["health"] > 0:
             remaining_enemies.append(enemy)
-        # If collided, enemy is removed
     enemies = remaining_enemies
 
 # --- Game Loop
@@ -69,8 +75,10 @@ while running:
 
     keys = pygame.key.get_pressed()
     move_player(keys, player_pos)
-    move_enemies(enemies)
+    move_enemies(enemies, player_pos)
     check_collisions()
+    if player_health <= 0:
+        running = False
 
     # Draw green background
     screen.fill((34, 139, 34))
@@ -79,6 +87,11 @@ while running:
     # Draw enemies (red)
     for enemy in enemies:
         pygame.draw.circle(screen, (255, 0, 0), enemy["pos"], ENEMY_RADIUS)
+
+    # Draw player health
+    font = pygame.font.SysFont(None, 24)
+    hp_text = font.render(f"HP: {player_health}", True, (255, 255, 255))
+    screen.blit(hp_text, (10, 10))
 
     pygame.display.flip()
 
