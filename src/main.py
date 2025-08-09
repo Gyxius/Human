@@ -11,6 +11,7 @@ ENEMY_SPEED = 2
 PLAYER_MAX_HEALTH = 100
 ENEMY_MAX_HEALTH = 30
 COLLISION_DAMAGE = 1
+PLAYER_REGEN_DELAY = 60  # frames required to regain 1 health when stationary
 WALL_COLOR = (139, 69, 19)
 
 # simple static walls represented as pygame.Rect objects
@@ -28,6 +29,7 @@ clock = pygame.time.Clock()
 # --- Player
 player_pos = pygame.Vector2(WIDTH // 2, HEIGHT // 2)
 player_health = PLAYER_MAX_HEALTH
+player_regen_counter = 0
 
 # --- Enemies
 enemies = []
@@ -60,14 +62,19 @@ def resolve_circle_collision(pos1, radius1, pos2, radius2):
 
 def move_player(keys, pos):
     prev_pos = pos.copy()
+    moved = False
     if keys[pygame.K_w] or keys[pygame.K_UP]:
         pos.y -= PLAYER_SPEED
+        moved = True
     if keys[pygame.K_s] or keys[pygame.K_DOWN]:
         pos.y += PLAYER_SPEED
+        moved = True
     if keys[pygame.K_a] or keys[pygame.K_LEFT]:
         pos.x -= PLAYER_SPEED
+        moved = True
     if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
         pos.x += PLAYER_SPEED
+        moved = True
     # Keep player within screen bounds
     pos.x = max(PLAYER_RADIUS, min(WIDTH - PLAYER_RADIUS, pos.x))
     pos.y = max(PLAYER_RADIUS, min(HEIGHT - PLAYER_RADIUS, pos.y))
@@ -87,6 +94,7 @@ def move_player(keys, pos):
                 pos.update(prev_pos)
                 resolve_circle_collision(pos, PLAYER_RADIUS, enemy["pos"], ENEMY_RADIUS)
                 break
+    return moved
 
 def move_enemies(enemy_list, player_pos):
     for i, enemy in enumerate(enemy_list):
@@ -138,9 +146,16 @@ while running:
             running = False
 
     keys = pygame.key.get_pressed()
-    move_player(keys, player_pos)
+    moved = move_player(keys, player_pos)
     move_enemies(enemies, player_pos)
     check_collisions()
+    if moved:
+        player_regen_counter = 0
+    elif player_health < PLAYER_MAX_HEALTH:
+        player_regen_counter += 1
+        if player_regen_counter >= PLAYER_REGEN_DELAY:
+            player_health = min(player_health + 1, PLAYER_MAX_HEALTH)
+            player_regen_counter = 0
     if player_health <= 0:
         running = False
 
