@@ -11,6 +11,13 @@ ENEMY_SPEED = 2
 PLAYER_MAX_HEALTH = 100
 ENEMY_MAX_HEALTH = 30
 COLLISION_DAMAGE = 1
+WALL_COLOR = (139, 69, 19)
+
+# simple static walls represented as pygame.Rect objects
+WALLS = [
+    pygame.Rect(150, 100, 50, 400),
+    pygame.Rect(400, 200, 250, 50),
+]
 
 # --- Setup
 pygame.init()
@@ -28,7 +35,16 @@ for _ in range(ENEMY_COUNT):
     pos = pygame.Vector2(random.randint(0, WIDTH), random.randint(0, HEIGHT))
     enemies.append({"pos": pos, "health": ENEMY_MAX_HEALTH})
 
+
+def circle_rect_collision(circle_pos, radius, rect):
+    """Return True if a circle collides with a rectangle."""
+    closest_x = max(rect.left, min(circle_pos.x, rect.right))
+    closest_y = max(rect.top, min(circle_pos.y, rect.bottom))
+    distance = pygame.Vector2(closest_x - circle_pos.x, closest_y - circle_pos.y)
+    return distance.length() < radius
+
 def move_player(keys, pos):
+    prev_pos = pos.copy()
     if keys[pygame.K_w] or keys[pygame.K_UP]:
         pos.y -= PLAYER_SPEED
     if keys[pygame.K_s] or keys[pygame.K_DOWN]:
@@ -40,9 +56,14 @@ def move_player(keys, pos):
     # Keep player within screen bounds
     pos.x = max(PLAYER_RADIUS, min(WIDTH - PLAYER_RADIUS, pos.x))
     pos.y = max(PLAYER_RADIUS, min(HEIGHT - PLAYER_RADIUS, pos.y))
+    for wall in WALLS:
+        if circle_rect_collision(pos, PLAYER_RADIUS, wall):
+            pos.update(prev_pos)
+            break
 
 def move_enemies(enemy_list, player_pos):
     for enemy in enemy_list:
+        prev_pos = enemy["pos"].copy()
         # Move towards the player
         direction = player_pos - enemy["pos"]
         if direction.length() != 0:
@@ -51,6 +72,10 @@ def move_enemies(enemy_list, player_pos):
         # Keep enemy within screen bounds
         enemy["pos"].x = max(ENEMY_RADIUS, min(WIDTH - ENEMY_RADIUS, enemy["pos"].x))
         enemy["pos"].y = max(ENEMY_RADIUS, min(HEIGHT - ENEMY_RADIUS, enemy["pos"].y))
+        for wall in WALLS:
+            if circle_rect_collision(enemy["pos"], ENEMY_RADIUS, wall):
+                enemy["pos"].update(prev_pos)
+                break
 
 def check_collisions():
     """Handle damage when the player collides with enemies."""
@@ -82,6 +107,9 @@ while running:
 
     # Draw green background
     screen.fill((34, 139, 34))
+    # Draw walls
+    for wall in WALLS:
+        pygame.draw.rect(screen, WALL_COLOR, wall)
     # Draw player (blue)
     pygame.draw.circle(screen, (0, 0, 255), player_pos, PLAYER_RADIUS)
     # Draw enemies (red)
