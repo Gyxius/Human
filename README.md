@@ -1,4 +1,4 @@
 # Human
 
-# I'm going to start by creating a small map I guess
-# The goal is to make the quickest fun game
+Simple Pygame project. The world is much larger than the visible window and the
+camera follows the player as they explore the map.
