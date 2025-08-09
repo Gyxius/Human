@@ -16,7 +16,7 @@ WALL_COLOR = (139, 69, 19)
 ATTACK_RANGE = 20  # additional distance from the player to hit enemies
 ATTACK_DAMAGE = 15
 PLAYER_COLOR = (0, 0, 255)
-PLAYER_ATTACK_COLOR = (255, 255, 0)
+PLAYER_ATTACK_COLOR = (0, 155, 155)
 PLAYER_ATTACK_RADIUS_BOOST = 5
 
 # simple static walls represented as pygame.Rect objects
