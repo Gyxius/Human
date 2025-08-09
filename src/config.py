@@ -1,0 +1,24 @@
+import pygame
+
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+MAP_WIDTH, MAP_HEIGHT = 2400, 1800
+PLAYER_RADIUS = 30
+ENEMY_RADIUS = 20
+ENEMY_COUNT = 10
+PLAYER_SPEED = 5
+ENEMY_SPEED = 2
+PLAYER_MAX_HEALTH = 100
+ENEMY_MAX_HEALTH = 30
+COLLISION_DAMAGE = 1
+PLAYER_REGEN_DELAY = 20  # frames required to regain 1 health when stationary
+WALL_COLOR = (139, 69, 19)
+ATTACK_RANGE = 20  # additional distance from the player to hit enemies
+ATTACK_DAMAGE = 15
+PLAYER_COLOR = (0, 0, 255)
+PLAYER_ATTACK_COLOR = (0, 155, 155)
+PLAYER_ATTACK_RADIUS_BOOST = 5
+
+WALLS = [
+    pygame.Rect(150, 100, 50, 400),
+    pygame.Rect(400, 200, 250, 50),
+]
