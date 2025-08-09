@@ -11,7 +11,7 @@ ENEMY_SPEED = 2
 PLAYER_MAX_HEALTH = 100
 ENEMY_MAX_HEALTH = 30
 COLLISION_DAMAGE = 1
-PLAYER_REGEN_DELAY = 60  # frames required to regain 1 health when stationary
+PLAYER_REGEN_DELAY = 20  # frames required to regain 1 health when stationary
 WALL_COLOR = (139, 69, 19)
 
 # simple static walls represented as pygame.Rect objects
