@@ -43,6 +43,21 @@ def circle_rect_collision(circle_pos, radius, rect):
     distance = pygame.Vector2(closest_x - circle_pos.x, closest_y - circle_pos.y)
     return distance.length() < radius
 
+
+def resolve_circle_collision(pos1, radius1, pos2, radius2):
+    """Push two circles apart if they overlap."""
+    delta = pos2 - pos1
+    distance = delta.length()
+    if distance == 0:
+        # Avoid division by zero by giving a tiny random direction
+        delta = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1))
+        distance = delta.length()
+    if distance < radius1 + radius2:
+        overlap = radius1 + radius2 - distance
+        direction = delta.normalize()
+        pos1 -= direction * overlap / 2
+        pos2 += direction * overlap / 2
+
 def move_player(keys, pos):
     prev_pos = pos.copy()
     if keys[pygame.K_w] or keys[pygame.K_UP]:
@@ -60,9 +75,21 @@ def move_player(keys, pos):
         if circle_rect_collision(pos, PLAYER_RADIUS, wall):
             pos.update(prev_pos)
             break
+    # Resolve collisions with enemies
+    for enemy in enemies:
+        resolve_circle_collision(pos, PLAYER_RADIUS, enemy["pos"], ENEMY_RADIUS)
+        # Ensure the player stays within bounds after resolution
+        pos.x = max(PLAYER_RADIUS, min(WIDTH - PLAYER_RADIUS, pos.x))
+        pos.y = max(PLAYER_RADIUS, min(HEIGHT - PLAYER_RADIUS, pos.y))
+        # Avoid pushing into walls
+        for wall in WALLS:
+            if circle_rect_collision(pos, PLAYER_RADIUS, wall):
+                pos.update(prev_pos)
+                resolve_circle_collision(pos, PLAYER_RADIUS, enemy["pos"], ENEMY_RADIUS)
+                break
 
 def move_enemies(enemy_list, player_pos):
-    for enemy in enemy_list:
+    for i, enemy in enumerate(enemy_list):
         prev_pos = enemy["pos"].copy()
         # Move towards the player
         direction = player_pos - enemy["pos"]
@@ -76,6 +103,18 @@ def move_enemies(enemy_list, player_pos):
             if circle_rect_collision(enemy["pos"], ENEMY_RADIUS, wall):
                 enemy["pos"].update(prev_pos)
                 break
+
+        # Resolve collisions with the player
+        resolve_circle_collision(enemy["pos"], ENEMY_RADIUS, player_pos, PLAYER_RADIUS)
+
+        # Resolve collisions with other enemies processed so far
+        for j in range(i):
+            other = enemy_list[j]
+            resolve_circle_collision(enemy["pos"], ENEMY_RADIUS, other["pos"], ENEMY_RADIUS)
+
+        # Keep enemy within bounds after resolution
+        enemy["pos"].x = max(ENEMY_RADIUS, min(WIDTH - ENEMY_RADIUS, enemy["pos"].x))
+        enemy["pos"].y = max(ENEMY_RADIUS, min(HEIGHT - ENEMY_RADIUS, enemy["pos"].y))
 
 def check_collisions():
     """Handle damage when the player collides with enemies."""
