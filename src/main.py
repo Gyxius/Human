@@ -2,7 +2,9 @@ import random
 import pygame
 
 # --- Configuration
-WIDTH, HEIGHT = 800, 600
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+# World is much larger than the visible screen
+MAP_WIDTH, MAP_HEIGHT = 2400, 1800
 PLAYER_RADIUS = 30
 ENEMY_RADIUS = 20
 ENEMY_COUNT = 10
@@ -27,19 +29,19 @@ WALLS = [
 
 # --- Setup
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Simple 2D Agar.io-like Game")
 clock = pygame.time.Clock()
 
 # --- Player
-player_pos = pygame.Vector2(WIDTH // 2, HEIGHT // 2)
+player_pos = pygame.Vector2(MAP_WIDTH // 2, MAP_HEIGHT // 2)
 player_health = PLAYER_MAX_HEALTH
 player_regen_counter = 0
 
 # --- Enemies
 enemies = []
 for _ in range(ENEMY_COUNT):
-    pos = pygame.Vector2(random.randint(0, WIDTH), random.randint(0, HEIGHT))
+    pos = pygame.Vector2(random.randint(0, MAP_WIDTH), random.randint(0, MAP_HEIGHT))
     enemies.append({"pos": pos, "health": ENEMY_MAX_HEALTH})
 
 
@@ -96,17 +98,17 @@ def move_player(keys, pos):
     if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
         pos.x += PLAYER_SPEED
         moved = True
-    # Keep player within screen bounds
-    pos.x = max(PLAYER_RADIUS, min(WIDTH - PLAYER_RADIUS, pos.x))
-    pos.y = max(PLAYER_RADIUS, min(HEIGHT - PLAYER_RADIUS, pos.y))
+    # Keep player within map bounds
+    pos.x = max(PLAYER_RADIUS, min(MAP_WIDTH - PLAYER_RADIUS, pos.x))
+    pos.y = max(PLAYER_RADIUS, min(MAP_HEIGHT - PLAYER_RADIUS, pos.y))
     for wall in WALLS:
         resolve_circle_rect_collision(pos, PLAYER_RADIUS, wall)
     # Resolve collisions with enemies
     for enemy in enemies:
         resolve_circle_collision(pos, PLAYER_RADIUS, enemy["pos"], ENEMY_RADIUS)
         # Ensure the player stays within bounds after resolution
-        pos.x = max(PLAYER_RADIUS, min(WIDTH - PLAYER_RADIUS, pos.x))
-        pos.y = max(PLAYER_RADIUS, min(HEIGHT - PLAYER_RADIUS, pos.y))
+        pos.x = max(PLAYER_RADIUS, min(MAP_WIDTH - PLAYER_RADIUS, pos.x))
+        pos.y = max(PLAYER_RADIUS, min(MAP_HEIGHT - PLAYER_RADIUS, pos.y))
         for wall in WALLS:
             resolve_circle_rect_collision(pos, PLAYER_RADIUS, wall)
     return moved
@@ -118,9 +120,9 @@ def move_enemies(enemy_list, player_pos):
         if direction.length() != 0:
             direction = direction.normalize()
             enemy["pos"] += direction * ENEMY_SPEED
-        # Keep enemy within screen bounds
-        enemy["pos"].x = max(ENEMY_RADIUS, min(WIDTH - ENEMY_RADIUS, enemy["pos"].x))
-        enemy["pos"].y = max(ENEMY_RADIUS, min(HEIGHT - ENEMY_RADIUS, enemy["pos"].y))
+        # Keep enemy within map bounds
+        enemy["pos"].x = max(ENEMY_RADIUS, min(MAP_WIDTH - ENEMY_RADIUS, enemy["pos"].x))
+        enemy["pos"].y = max(ENEMY_RADIUS, min(MAP_HEIGHT - ENEMY_RADIUS, enemy["pos"].y))
         for wall in WALLS:
             resolve_circle_rect_collision(enemy["pos"], ENEMY_RADIUS, wall)
 
@@ -137,8 +139,8 @@ def move_enemies(enemy_list, player_pos):
                 resolve_circle_rect_collision(enemy["pos"], ENEMY_RADIUS, wall)
 
         # Keep enemy within bounds after resolution
-        enemy["pos"].x = max(ENEMY_RADIUS, min(WIDTH - ENEMY_RADIUS, enemy["pos"].x))
-        enemy["pos"].y = max(ENEMY_RADIUS, min(HEIGHT - ENEMY_RADIUS, enemy["pos"].y))
+        enemy["pos"].x = max(ENEMY_RADIUS, min(MAP_WIDTH - ENEMY_RADIUS, enemy["pos"].x))
+        enemy["pos"].y = max(ENEMY_RADIUS, min(MAP_HEIGHT - ENEMY_RADIUS, enemy["pos"].y))
         for wall in WALLS:
             resolve_circle_rect_collision(enemy["pos"], ENEMY_RADIUS, wall)
 
@@ -180,18 +182,24 @@ while running:
     if player_health <= 0:
         running = False
 
+    # Determine camera offset to keep player centered
+    camera_offset = pygame.Vector2(
+        max(0, min(player_pos.x - SCREEN_WIDTH / 2, MAP_WIDTH - SCREEN_WIDTH)),
+        max(0, min(player_pos.y - SCREEN_HEIGHT / 2, MAP_HEIGHT - SCREEN_HEIGHT)),
+    )
+
     # Draw green background
     screen.fill((34, 139, 34))
-    # Draw walls
+    # Draw walls adjusted for camera
     for wall in WALLS:
-        pygame.draw.rect(screen, WALL_COLOR, wall)
+        pygame.draw.rect(screen, WALL_COLOR, wall.move(-camera_offset))
     # Draw player
     player_draw_radius = PLAYER_RADIUS + (PLAYER_ATTACK_RADIUS_BOOST if attacking else 0)
     player_color = PLAYER_ATTACK_COLOR if attacking else PLAYER_COLOR
-    pygame.draw.circle(screen, player_color, player_pos, player_draw_radius)
+    pygame.draw.circle(screen, player_color, player_pos - camera_offset, player_draw_radius)
     # Draw enemies (red)
     for enemy in enemies:
-        pygame.draw.circle(screen, (255, 0, 0), enemy["pos"], ENEMY_RADIUS)
+        pygame.draw.circle(screen, (255, 0, 0), enemy["pos"] - camera_offset, ENEMY_RADIUS)
 
     # Draw player health
     font = pygame.font.SysFont(None, 24)
