@@ -13,6 +13,11 @@ ENEMY_MAX_HEALTH = 30
 COLLISION_DAMAGE = 1
 PLAYER_REGEN_DELAY = 20  # frames required to regain 1 health when stationary
 WALL_COLOR = (139, 69, 19)
+ATTACK_RANGE = 20  # additional distance from the player to hit enemies
+ATTACK_DAMAGE = 15
+PLAYER_COLOR = (0, 0, 255)
+PLAYER_ATTACK_COLOR = (255, 255, 0)
+PLAYER_ATTACK_RADIUS_BOOST = 5
 
 # simple static walls represented as pygame.Rect objects
 WALLS = [
@@ -124,8 +129,8 @@ def move_enemies(enemy_list, player_pos):
         enemy["pos"].x = max(ENEMY_RADIUS, min(WIDTH - ENEMY_RADIUS, enemy["pos"].x))
         enemy["pos"].y = max(ENEMY_RADIUS, min(HEIGHT - ENEMY_RADIUS, enemy["pos"].y))
 
-def check_collisions():
-    """Handle damage when the player collides with enemies."""
+def check_collisions(attacking: bool):
+    """Handle damage when the player collides with enemies or attacks them."""
     global enemies, player_health
     remaining_enemies = []
     for enemy in enemies:
@@ -133,6 +138,8 @@ def check_collisions():
         if dist <= PLAYER_RADIUS + ENEMY_RADIUS:
             player_health -= COLLISION_DAMAGE
             enemy["health"] -= COLLISION_DAMAGE
+        if attacking and dist <= PLAYER_RADIUS + ENEMY_RADIUS + ATTACK_RANGE:
+            enemy["health"] -= ATTACK_DAMAGE
         if enemy["health"] > 0:
             remaining_enemies.append(enemy)
     enemies = remaining_enemies
@@ -146,9 +153,10 @@ while running:
             running = False
 
     keys = pygame.key.get_pressed()
+    attacking = keys[pygame.K_SPACE]
     moved = move_player(keys, player_pos)
     move_enemies(enemies, player_pos)
-    check_collisions()
+    check_collisions(attacking)
     if moved:
         player_regen_counter = 0
     elif player_health < PLAYER_MAX_HEALTH:
@@ -164,8 +172,10 @@ while running:
     # Draw walls
     for wall in WALLS:
         pygame.draw.rect(screen, WALL_COLOR, wall)
-    # Draw player (blue)
-    pygame.draw.circle(screen, (0, 0, 255), player_pos, PLAYER_RADIUS)
+    # Draw player
+    player_draw_radius = PLAYER_RADIUS + (PLAYER_ATTACK_RADIUS_BOOST if attacking else 0)
+    player_color = PLAYER_ATTACK_COLOR if attacking else PLAYER_COLOR
+    pygame.draw.circle(screen, player_color, player_pos, player_draw_radius)
     # Draw enemies (red)
     for enemy in enemies:
         pygame.draw.circle(screen, (255, 0, 0), enemy["pos"], ENEMY_RADIUS)
